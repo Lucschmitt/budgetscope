@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import SankeyChart from './Sankey';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Poste {
@@ -235,22 +236,15 @@ export default function Simulateur({ data }: Props) {
           </div>
         </aside>
 
-        {/* ── Sankey placeholder ── */}
+        {/* ── Sankey ── */}
         <section className="sankey-zone">
           <div className="sankey-card">
-            <div className="sankey-flows">
-              <div className="flow-bar flow-recettes" style={{ height: `${Math.min(90, (totalRecettes / 1000) * 100)}%` }}>
-                <span>{totalRecettes.toFixed(0)} mds</span>
-              </div>
-              <div className={`flow-solde ${solde >= 0 ? 'solde-pos' : 'solde-neg'}`}>
-                <span className="flow-solde-label">Solde</span>
-                <span className="flow-solde-val">{fmt(solde)} €</span>
-              </div>
-              <div className="flow-bar flow-depenses" style={{ height: `${Math.min(90, (totalDepenses / 1000) * 100)}%` }}>
-                <span>{totalDepenses.toFixed(0)} mds</span>
-              </div>
-            </div>
-            <p className="sankey-note">Diagramme Sankey D3 — prochaine étape</p>
+            <SankeyChart
+              recettes={data.recettes.map(p => ({ ...p, valeurEffective: valeurEffective(p) }))}
+              depenses={data.depenses.map(p => ({ ...p, valeurEffective: valeurEffective(p) }))}
+              totalRecettes={totalRecettes}
+              totalDepenses={totalDepenses}
+            />
           </div>
         </section>
 
@@ -509,49 +503,9 @@ export default function Simulateur({ data }: Props) {
           background: var(--bg-card);
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
-          padding: 1.5rem;
-          min-height: 400px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 1.5rem;
+          padding: 0.5rem;
+          min-height: 420px;
         }
-        .sankey-flows {
-          display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          gap: 2rem;
-          height: 260px;
-          width: 100%;
-        }
-        .flow-bar {
-          width: 80px;
-          border-radius: 6px 6px 0 0;
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          padding-top: 8px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          transition: height 0.4s ease;
-          min-height: 20px;
-        }
-        .flow-recettes { background: rgba(56,139,253,0.3); border: 1px solid var(--accent-blue); color: var(--accent-blue); }
-        .flow-depenses { background: rgba(248,81,73,0.3);  border: 1px solid var(--accent-red);  color: var(--accent-red); }
-        .flow-solde {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 0.25rem;
-          margin-bottom: 0.5rem;
-        }
-        .solde-pos .flow-solde-val { color: var(--accent-green); }
-        .solde-neg .flow-solde-val { color: var(--accent-red); }
-        .flow-solde-label { font-size: 0.7rem; color: var(--text-muted); }
-        .flow-solde-val   { font-size: 1rem; font-weight: 600; }
-        .sankey-note { font-size: 0.72rem; color: var(--text-muted); }
 
         /* Indicateurs */
         .indicators {
