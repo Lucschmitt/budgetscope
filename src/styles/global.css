@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  /* Palette sombre */
+  --bg-primary:    #0d1117;
+  --bg-secondary:  #161b22;
+  --bg-card:       #1c2128;
+  --bg-hover:      #21262d;
+
+  /* Texte */
+  --text-primary:  #e6edf3;
+  --text-secondary:#8b949e;
+  --text-muted:    #484f58;
+
+  /* Bordures */
+  --border:        #30363d;
+  --border-subtle: #21262d;
+
+  /* Accents */
+  --accent-blue:   #388bfd;
+  --accent-green:  #3fb950;
+  --accent-red:    #f85149;
+  --accent-orange: #d29922;
+  --accent-purple: #a371f7;
+
+  /* Sankey */
+  --sankey-recette:  #388bfd;
+  --sankey-depense:  #f85149;
+  --sankey-flux:     #30363d;
+  --sankey-surplus:  #3fb950;
+  --sankey-deficit:  #f85149;
+
+  /* Layout */
+  --radius:     8px;
+  --radius-lg:  12px;
+  --sidebar-w:  320px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+/* Scrollbar sombre */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Utilitaires */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 4px;
+}
+
+.badge-observe    { background: #1a3a2a; color: var(--accent-green); }
+.badge-hypothese  { background: #2a2a1a; color: var(--accent-orange); }
+.badge-incertain  { background: #2a1a1a; color: var(--accent-red); }
+
+/* Slider custom */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #58a6ff;
+}

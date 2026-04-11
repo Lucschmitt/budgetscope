@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Simulateur from '../components/Simulateur';
+import budgetData from '../data/budget_2025.json';
+---
+
+<Base title="Simulateur" description="Simulateur interactif des finances publiques françaises 2025">
+
+  <div class="hero">
+    <h1>Équilibrez le budget de la France</h1>
+    <p class="hero-sub">
+      Cochez les propositions pour voir leur impact réel sur le déficit, la dette et la croissance.
+      Chaque mesure affiche son statut épistémique et ses analogies historiques.
+    </p>
+  </div>
+
+  <Simulateur data={budgetData} client:load />
+
+</Base>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 2rem 1rem 0.5rem;
+  }
+  .hero h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+  .hero-sub {
+    color: var(--text-secondary);
+    max-width: 620px;
+    margin: 0 auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+</style>
