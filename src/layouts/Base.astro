@@ -23,7 +23,7 @@ const {
     <title>{title} — BudgetScope</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   </head>
   <body>
     <header>
@@ -31,6 +31,7 @@ const {
         <a href="/budgetscope/" class="logo">
           <span class="logo-icon">⚖</span>
           <span class="logo-text">BudgetScope</span>
+          <span class="logo-tagline">Une initiative IA × Democracy</span>
         </a>
         <div class="nav-meta">
           <span class="nav-badge">PLF 2025</span>
@@ -83,11 +84,24 @@ const {
     gap: 0.5rem;
     text-decoration: none;
     color: var(--text-primary);
-    font-weight: 600;
-    font-size: 1rem;
   }
-
-  .logo-icon { font-size: 1.2rem; }
+  .logo-icon { font-size: 1.1rem; }
+  .logo-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .logo-tagline {
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    padding-left: 0.5rem;
+    margin-left: 0.2rem;
+    border-left: 1px solid var(--border);
+  }
+  @media (max-width: 480px) { .logo-tagline { display: none; } }
 
   .nav-meta {
     display: flex;

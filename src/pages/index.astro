@@ -7,10 +7,10 @@ import budgetData from '../data/budget_2025.json';
 <Base title="Simulateur" description="Simulateur interactif des finances publiques françaises 2025">
 
   <div class="hero">
-    <h1>Équilibrez le budget de la France</h1>
-    <p class="hero-sub">
-      Cochez les propositions pour voir leur impact réel sur le déficit, la dette et la croissance.
-      Chaque mesure affiche son statut épistémique et ses analogies historiques.
+    <p class="hero-line">
+      <strong class="hero-title">Équilibrez le budget de la France</strong>
+      <span class="hero-sep">—</span>
+      Cochez les propositions pour voir leur impact sur le déficit, la dette et la croissance. Cliquez sur les nœuds et les flux pour voir le détail.
     </p>
   </div>
 
@@ -20,20 +20,25 @@ import budgetData from '../data/budget_2025.json';
 
 <style>
   .hero {
-    text-align: center;
-    padding: 2rem 1rem 0.5rem;
+    padding: 0.6rem 1rem 0.4rem;
   }
-  .hero h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-  }
-  .hero-sub {
+  .hero-line {
+    font-size: 0.8rem;
     color: var(--text-secondary);
-    max-width: 620px;
-    margin: 0 auto;
+    line-height: 1.5;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .hero-title {
+    font-weight: 700;
+    color: var(--text-primary);
     font-size: 0.875rem;
-    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .hero-sep {
+    color: var(--text-muted);
   }
 </style>

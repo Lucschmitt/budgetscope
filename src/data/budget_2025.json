@@ -1,90 +1,462 @@
 {
-  "recettes": [
-    { "id": "tva",    "label": "TVA",                    "valeur": 216, "min": 150, "max": 300, "couleur": "blue" },
-    { "id": "cot",    "label": "Cotisations sociales",   "valeur": 400, "min": 300, "max": 500, "couleur": "blue" },
-    { "id": "ir",     "label": "Impôt sur le revenu",    "valeur": 94,  "min": 50,  "max": 150, "couleur": "blue" },
-    { "id": "is",     "label": "Impôt sur les sociétés", "valeur": 67,  "min": 30,  "max": 120, "couleur": "blue" },
-    { "id": "ticpe",  "label": "TICPE + autres taxes",   "valeur": 35,  "min": 10,  "max": 60,  "couleur": "blue" },
-    { "id": "autres_r","label": "Autres recettes",       "valeur": 60,  "min": 30,  "max": 100, "couleur": "blue" }
+  "meta": {
+    "annee": 2025,
+    "pib": 2800,
+    "dette_initiale_pct": 112,
+    "sources": {
+      "PLF": "Projet de Loi de Finances 2025 — data.budget.gouv.fr",
+      "PLFSS": "Projet de Loi de Financement de la Sécurité Sociale 2025 — securite-sociale.fr",
+      "compensation": "ACOSS / URSSAF — rapport annuel 2024",
+      "dette": "Agence France Trésor — programme de financement 2025"
+    }
+  },
+  "recettes_plf": [
+    {
+      "id": "tva",
+      "label": "TVA",
+      "valeur": 216,
+      "min": 150,
+      "max": 300,
+      "source": "PLF 2025 — Tome I recettes fiscales",
+      "infobulle": "La TVA est prélevée sur chaque achat. Taux normal : 20 %. C'est la première recette de l'État. Une fraction (~65 mds) est reversée à la Sécurité sociale pour compenser les exonérations de cotisations patronales décidées par l'État.",
+      "taux_compensation_secu": 0.3
+    },
+    {
+      "id": "ir",
+      "label": "Impôt sur le revenu",
+      "valeur": 94,
+      "min": 50,
+      "max": 150,
+      "source": "PLF 2025 — DGFiP statistiques IR",
+      "infobulle": "Impôt progressif de 0 % à 45 % selon les revenus. Seuls 44 % des foyers fiscaux en paient. Finance le budget général de l'État.",
+      "taux_compensation_secu": 0
+    },
+    {
+      "id": "is",
+      "label": "Impôt sur les sociétés",
+      "valeur": 67,
+      "min": 30,
+      "max": 120,
+      "source": "PLF 2025 — DGFiP statistiques IS",
+      "infobulle": "Prélevé sur les bénéfices des entreprises. Taux normal : 25 % (réduit de 33 % à 25 % entre 2017 et 2022). Très sensible à la conjoncture économique.",
+      "taux_compensation_secu": 0
+    },
+    {
+      "id": "ticpe",
+      "label": "TICPE + écotaxes",
+      "valeur": 35,
+      "min": 10,
+      "max": 60,
+      "source": "PLF 2025 — Direction des douanes",
+      "infobulle": "Taxe sur les carburants (essence, diesel). Partiellement reversée aux collectivités locales et à l'AFITF (infrastructures). En baisse tendancielle avec l'électrification des véhicules.",
+      "taux_compensation_secu": 0
+    },
+    {
+      "id": "autres_plf",
+      "label": "Autres recettes",
+      "valeur": 60,
+      "min": 30,
+      "max": 100,
+      "source": "PLF 2025 — recettes non fiscales",
+      "infobulle": "Dividendes des entreprises publiques, amendes, recettes domaniales (loyers de biens de l'État) et taxes diverses. Recettes non pérennes, variables selon les cessions d'actifs.",
+      "taux_compensation_secu": 0
+    },
+    {
+      "id": "oat",
+      "label": "Emprunt d'État (OAT)",
+      "valeur": 152.5,
+      "min": 100,
+      "max": 220,
+      "fixe": true,
+      "source": "Agence France Trésor — programme de financement 2025",
+      "infobulle": "L'État finance son déficit en émettant des Obligations Assimilables du Trésor (OAT) sur les marchés financiers. Le programme d'émission nettes 2025 est fixé à 152,5 milliards d'euros, arrêté par l'Agence France Trésor. Ce chiffre est voté dans le PLF et ne peut pas être modifié arbitrairement — il est contraint par la trajectoire de dette.",
+      "taux_compensation_secu": 0
+    }
   ],
-  "depenses": [
-    { "id": "sante",    "label": "Santé / Sécu",       "valeur": 260, "min": 200, "max": 350, "couleur": "red" },
-    { "id": "education","label": "Éducation",           "valeur": 60,  "min": 40,  "max": 100, "couleur": "red" },
-    { "id": "emploi",   "label": "Emploi / Travail",   "valeur": 55,  "min": 30,  "max": 90,  "couleur": "red" },
-    { "id": "defense",  "label": "Défense",             "valeur": 47,  "min": 30,  "max": 80,  "couleur": "red" },
-    { "id": "dette",    "label": "Charge de la dette", "valeur": 54,  "min": 54,  "max": 54,  "couleur": "red", "fixe": true },
-    { "id": "collec",   "label": "Collectivités",       "valeur": 45,  "min": 25,  "max": 80,  "couleur": "red" },
-    { "id": "autres_d", "label": "Autres dépenses",    "valeur": 120, "min": 80,  "max": 180, "couleur": "red" }
+  "recettes_plfss": [
+    {
+      "id": "cotis_patronales",
+      "label": "Cotisations patronales",
+      "valeur": 240,
+      "min": 150,
+      "max": 320,
+      "source": "PLFSS 2025 — ACOSS/URSSAF",
+      "infobulle": "Versées par l'employeur en plus du salaire brut (~28-42 % du salaire). Financent maladie, retraite, accidents du travail et famille. Des allègements sur les bas salaires (~65 mds) sont compensés par l'État via la TVA.",
+      "taux_allegement": 0.27
+    },
+    {
+      "id": "cotis_salariales",
+      "label": "Cotisations salariales",
+      "valeur": 160,
+      "min": 100,
+      "max": 220,
+      "source": "PLFSS 2025 — ACOSS/URSSAF",
+      "infobulle": "Prélevées sur le salaire brut (~22 %). Ouvrent des droits : retraite, chômage (Unédic), maladie. La différence entre salaire brut et net correspond en grande partie à ces cotisations.",
+      "taux_allegement": 0
+    },
+    {
+      "id": "csg_crds",
+      "label": "CSG / CRDS",
+      "valeur": 130,
+      "min": 90,
+      "max": 170,
+      "source": "PLFSS 2025 — Direction de la Sécurité Sociale",
+      "infobulle": "Prélevées sur tous les revenus (salaires, retraites, placements). La CSG finance la Sécu, la CRDS rembourse la dette sociale historique (CADES). Contrairement aux cotisations, elles n'ouvrent pas de droits spécifiques.",
+      "taux_allegement": 0
+    }
+  ],
+  "consolidation": {
+    "compensation_tva_secu": 65,
+    "emprunt_etat": 152.5,
+    "infobulle_compensation": "L'État compense à la Sécurité sociale les exonérations de cotisations patronales qu'il décide (allègements Fillon, zones franches...). En 2025, ~65 milliards transitent via un transfert de TVA. C'est un principe constitutionnel : toute exonération doit être compensée à euro près. Source : ACOSS rapport 2024.",
+    "infobulle_emprunt": "Pour couvrir son déficit, l'État émet des Obligations Assimilables du Trésor (OAT) sur les marchés financiers. En 2025, l'Agence France Trésor prévoit ~285 milliards d'émissions brutes (renouvellement de dettes arrivant à échéance + nouveau financement). Source : AFT programme de financement 2025."
+  },
+  "depenses_plf": [
+    {
+      "id": "education",
+      "label": "Éducation nationale",
+      "valeur": 60,
+      "min": 40,
+      "max": 100,
+      "source": "PLF 2025 — Mission Enseignement scolaire",
+      "infobulle": "Premier budget de l'État. Finance les salaires des enseignants (la moitié des fonctionnaires d'État), les établissements et les programmes. Ne couvre pas l'enseignement supérieur ni la formation professionnelle (budgets séparés)."
+    },
+    {
+      "id": "defense",
+      "label": "Défense",
+      "valeur": 47,
+      "min": 30,
+      "max": 80,
+      "source": "PLF 2025 — Mission Défense (LPM 2024-2030)",
+      "infobulle": "Suit la Loi de Programmation Militaire 2024-2030 visant 2 % du PIB (objectif OTAN). Couvre les équipements (Rafale, SNLE nucléaires), les 200 000 militaires et la dissuasion nucléaire."
+    },
+    {
+      "id": "dette_charge",
+      "label": "Charge de la dette",
+      "valeur": 54,
+      "min": 54,
+      "max": 54,
+      "fixe": true,
+      "source": "PLF 2025 — Mission Engagements financiers",
+      "infobulle": "Intérêts payés sur la dette publique (3 200 mds). Non compressible : engagement contractuel. En forte hausse depuis 2022 avec la remontée des taux. Bientôt premier poste budgétaire de l'État."
+    },
+    {
+      "id": "collectivites",
+      "label": "Collectivités locales",
+      "valeur": 45,
+      "min": 25,
+      "max": 80,
+      "source": "PLF 2025 — Mission Relations avec les collectivités",
+      "infobulle": "Dotation Globale de Fonctionnement (DGF) versée aux communes, départements et régions. En baisse depuis 2014. Les collectivités ont aussi leurs propres recettes (taxe foncière, CVAE)."
+    },
+    {
+      "id": "ensup_recherche",
+      "label": "Enseignement supérieur et recherche",
+      "valeur": 28,
+      "min": 20,
+      "max": 40,
+      "source": "PLF 2025 — Mission Recherche et enseignement supérieur",
+      "infobulle": "Finance les universités, les grandes écoles publiques, le CNRS et les organismes de recherche (INSERM, INRAE...). Troisième poste du budget de l'État après l'éducation nationale et la charge de la dette."
+    },
+    {
+      "id": "interieur",
+      "label": "Intérieur et sécurité",
+      "valeur": 22,
+      "min": 15,
+      "max": 35,
+      "source": "PLF 2025 — Mission Sécurités",
+      "infobulle": "Police nationale, gendarmerie, sécurité civile (pompiers) et préfectures. En hausse régulière depuis 2017 dans le cadre du plan de renforcement des forces de l'ordre."
+    },
+    {
+      "id": "travail_formation",
+      "label": "Travail et formation professionnelle",
+      "valeur": 20,
+      "min": 12,
+      "max": 32,
+      "source": "PLF 2025 — Mission Travail et emploi",
+      "infobulle": "Financement de France Compétences (apprentissage, formation pro), des contrats aidés et des dispositifs d'insertion. Distinct des allocations chômage qui relèvent de l'Unédic (PLFSS)."
+    },
+    {
+      "id": "autres_plf_dep",
+      "label": "Autres dépenses PLF",
+      "valeur": 45,
+      "min": 25,
+      "max": 70,
+      "source": "PLF 2025 — missions diverses (Justice, Agriculture, Culture, Affaires étrangères...)",
+      "infobulle": "Regroupe les missions en dessous de 15 milliards : Justice (~12 mds), Agriculture et transition écologique (~8 mds), Culture (~4 mds), Affaires étrangères (~3 mds), pouvoirs publics et divers (~18 mds)."
+    }
+  ],
+  "depenses_plfss": [
+    {
+      "id": "retraites",
+      "label": "Retraites",
+      "valeur": 345,
+      "min": 280,
+      "max": 420,
+      "source": "PLFSS 2025 — branche vieillesse CNAV + Agirc-Arrco",
+      "infobulle": "Premier poste de dépense de la Sécu, en croissance avec le vieillissement. Inclut retraites de base (CNAV) et complémentaires (Agirc-Arrco). La réforme 2023 (64 ans) vise à ralentir cette progression."
+    },
+    {
+      "id": "sante",
+      "label": "Assurance maladie",
+      "valeur": 260,
+      "min": 200,
+      "max": 350,
+      "source": "PLFSS 2025 — ONDAM",
+      "infobulle": "L'ONDAM fixe l'enveloppe annuelle des remboursements de soins. Couvre médecins, médicaments et hôpitaux. Taux de remboursement moyen : 77 %. En hausse structurelle de +4,5 %/an."
+    },
+    {
+      "id": "famille",
+      "label": "Famille et handicap",
+      "valeur": 50,
+      "min": 35,
+      "max": 70,
+      "source": "PLFSS 2025 — branche famille CNAF",
+      "infobulle": "Allocations familiales, PAJE (jeune enfant), aides au logement (APL) et AAH (adultes handicapés). Géré par la CNAF (Caisse Nationale des Allocations Familiales)."
+    },
+    {
+      "id": "emploi_chomage",
+      "label": "Emploi / Chômage",
+      "valeur": 55,
+      "min": 30,
+      "max": 90,
+      "source": "PLFSS 2025 — Unédic + France Travail",
+      "infobulle": "Allocations chômage (ARE) via l'Unédic et accompagnement via France Travail. Très sensible à la conjoncture : baisse quand le chômage recule, hausse en récession."
+    }
   ],
   "mesures": [
     {
       "id": "zucman",
-      "label": "Taxe Zucman (ISF mondial 2%)",
-      "source": "Proposition LFI / G. Zucman",
+      "label": "Taxe Zucman — ISF mondial 2 %",
+      "source_label": "Proposition LFI / G. Zucman (Berkeley)",
+      "source_url": "https://www.nytimes.com/2024/06/25/opinion/global-billionaire-tax.html",
       "type": "recette",
+      "budget": "plf",
       "poste": "ir",
       "impact_min": 19,
       "impact_max": 25,
       "statut": "hypothese_partielle",
       "confiance": "moyenne",
-      "effets_indirects": ["Fuite estimée à −0.03% des recettes (IPP 2023)"],
-      "questions": ["Taux de fuite réel au-delà de 3M€ ?", "Impact sur PME familiales non cotées ?"]
+      "infobulle": "Impôt mondial minimum de 2 % sur les patrimoines >1 milliard $. Défendu par G. Zucman au G20 brésilien 2024. Nécessite un accord international comme le BEPS (impôt minimum sociétés à 15 %).",
+      "effets_indirects": [
+        "Fuite estimée −0.03 % des recettes (IPP 2023)",
+        "Nécessite coopération internationale"
+      ],
+      "analogies_historiques": [
+        {
+          "pays": "Suède",
+          "annee": 1990,
+          "mesure": "Suppression ISF",
+          "impact_observe": "+2 % IS à 5 ans",
+          "score": 0.55
+        }
+      ],
+      "questions": [
+        "Taux de fuite réel au-delà de 3 M€ ?",
+        "Impact sur les PME familiales non cotées ?"
+      ]
     },
     {
       "id": "suppression-ame",
       "label": "Suppression de l'AME",
-      "source": "Programme RN / LR",
+      "source_label": "Programme RN / LR 2024",
+      "source_url": "https://www.ccomptes.fr/fr/publications/laide-medicale-de-letat",
       "type": "depense",
+      "budget": "plfss",
       "poste": "sante",
       "impact_min": -1.1,
       "impact_max": -1.3,
       "statut": "incertain",
       "confiance": "faible",
-      "effets_indirects": ["Report urgences : +0.4 à +0.9 mds (Cour des comptes 2019)", "Propagation maladies infectieuses non chiffrée"],
-      "questions": ["Quel report réel vers les urgences ?", "Coût de la non-prise en charge sur le travail ?"]
+      "infobulle": "L'AME couvre les soins des personnes en situation irrégulière (~400 000 bénéficiaires). Coût brut : 1,2 mds. La Cour des comptes estime un report massif vers les urgences en cas de suppression.",
+      "effets_indirects": [
+        "Report urgences : +0.4 à +0.9 mds (Cour des comptes 2019)",
+        "Risque réapparition maladies infectieuses"
+      ],
+      "analogies_historiques": [
+        {
+          "pays": "USA",
+          "annee": 2010,
+          "mesure": "Restriction Medicaid immigrés",
+          "impact_observe": "+18 % coûts urgences",
+          "score": 0.61
+        }
+      ],
+      "questions": [
+        "Quel report réel vers les urgences ?",
+        "Coût épidémiologique d'une population non vaccinée ?"
+      ]
     },
     {
       "id": "hausse-tva-1pt",
       "label": "Hausse TVA de 1 point",
-      "source": "Proposition générique",
+      "source_label": "Débat budgétaire 2025",
+      "source_url": "https://www.ofce.sciences-po.fr",
       "type": "recette",
+      "budget": "plf",
       "poste": "tva",
       "impact_min": 8,
       "impact_max": 12,
       "statut": "observe",
       "confiance": "haute",
-      "effets_indirects": ["Baisse consommation estimée −0.3% (multiplicateur OFCE)"],
-      "questions": ["Impact sur pouvoir d'achat des ménages modestes ?"]
+      "infobulle": "+1 pt de TVA ≈ +10 mds de recettes. Précédent : Allemagne 2007 (+3 pts). Effet régressif sur les ménages modestes (la TVA représente une part plus élevée de leurs revenus).",
+      "effets_indirects": [
+        "Baisse consommation −0.3 % (OFCE)",
+        "Effet régressif confirmé sur les bas revenus"
+      ],
+      "analogies_historiques": [
+        {
+          "pays": "Allemagne",
+          "annee": 2007,
+          "mesure": "TVA 16→19 %",
+          "impact_observe": "−0.5 % conso T1, normalisation T3",
+          "score": 0.82
+        }
+      ],
+      "questions": [
+        "Impact pouvoir d'achat ménages modestes ?",
+        "Quel taux : normal, réduit ou les deux ?"
+      ]
     },
     {
-      "id": "reduction-defense",
-      "label": "Gel budget Défense",
-      "source": "Proposition générique",
+      "id": "reforme-retraites-64",
+      "label": "Abrogation réforme retraites 2023",
+      "source_label": "Programme LFI / PS 2024",
+      "source_url": "https://www.cor-retraites.fr",
       "type": "depense",
-      "poste": "defense",
-      "impact_min": -5,
-      "impact_max": -3,
-      "statut": "hypothese_non_verifiee",
-      "confiance": "faible",
-      "effets_indirects": ["Impact sur commandes industrielles non chiffré"],
-      "questions": ["Compatibilité avec objectif OTAN 2% PIB ?"]
+      "budget": "plfss",
+      "poste": "retraites",
+      "impact_min": 8,
+      "impact_max": 12,
+      "statut": "hypothese_partielle",
+      "confiance": "moyenne",
+      "infobulle": "Retour à 62 ans d'âge légal. Le COR estime la réforme 2023 à ~18 mds d'économies à horizon 2035. L'abrogation coûterait 8-12 mds à court terme.",
+      "effets_indirects": [
+        "Impact emploi des seniors 60-64 ans",
+        "Hausse cotisations potentielle pour équilibrer"
+      ],
+      "analogies_historiques": [
+        {
+          "pays": "France",
+          "annee": 1982,
+          "mesure": "Retraite à 60 ans",
+          "impact_observe": "+1.5 pt PIB sur 10 ans (COR 2010)",
+          "score": 0.71
+        }
+      ],
+      "questions": [
+        "Quel scénario démographique pour 2030 ?",
+        "Impact marché du travail des 60-64 ans ?"
+      ]
+    },
+    {
+      "id": "allegement-cotisations",
+      "label": "Extension allègements cotisations patronales",
+      "source_label": "Proposition MEDEF / patronat 2024",
+      "source_url": "https://www.acoss.fr",
+      "type": "recette",
+      "budget": "plfss",
+      "poste": "cotis_patronales",
+      "impact_min": -15,
+      "impact_max": -10,
+      "statut": "hypothese_partielle",
+      "confiance": "moyenne",
+      "infobulle": "Extension au-delà de 1,6 SMIC pour réduire le coût du travail. Nécessite compensation obligatoire de l'État (principe constitutionnel). Risque de trappe à bas salaires au seuil d'exonération.",
+      "effets_indirects": [
+        "Compensation État→Sécu obligatoire",
+        "Risque trappe à bas salaires"
+      ],
+      "analogies_historiques": [],
+      "questions": [
+        "Quel taux de compensation prévu ?",
+        "Impact sur les négociations salariales ?"
+      ]
     }
   ],
-  "pib": 2800,
-  "dette_initiale_pct": 112,
   "multiplicateurs": {
-    "ir":       { "bas": 0.5, "haut": 0.8 },
-    "is":       { "bas": 0.3, "haut": 0.6 },
-    "tva":      { "bas": 0.3, "haut": 0.5 },
-    "cot":      { "bas": 0.6, "haut": 0.9 },
-    "ticpe":    { "bas": 0.2, "haut": 0.4 },
-    "autres_r": { "bas": 0.2, "haut": 0.4 },
-    "sante":    { "bas": 0.8, "haut": 1.2 },
-    "education":{ "bas": 0.7, "haut": 1.0 },
-    "emploi":   { "bas": 0.6, "haut": 0.9 },
-    "defense":  { "bas": 0.5, "haut": 0.8 },
-    "dette":    { "bas": 0.0, "haut": 0.0 },
-    "collec":   { "bas": 0.7, "haut": 1.0 },
-    "autres_d": { "bas": 0.5, "haut": 0.8 }
+    "tva": {
+      "bas": 0.3,
+      "haut": 0.5
+    },
+    "ir": {
+      "bas": 0.5,
+      "haut": 0.8
+    },
+    "is": {
+      "bas": 0.3,
+      "haut": 0.6
+    },
+    "ticpe": {
+      "bas": 0.2,
+      "haut": 0.4
+    },
+    "autres_plf": {
+      "bas": 0.2,
+      "haut": 0.4
+    },
+    "cotis_patronales": {
+      "bas": 0.6,
+      "haut": 0.9
+    },
+    "cotis_salariales": {
+      "bas": 0.5,
+      "haut": 0.8
+    },
+    "csg_crds": {
+      "bas": 0.4,
+      "haut": 0.6
+    },
+    "education": {
+      "bas": 0.7,
+      "haut": 1.0
+    },
+    "defense": {
+      "bas": 0.5,
+      "haut": 0.8
+    },
+    "dette_charge": {
+      "bas": 0.0,
+      "haut": 0.0
+    },
+    "collectivites": {
+      "bas": 0.7,
+      "haut": 1.0
+    },
+    "autres_plf_dep": {
+      "bas": 0.5,
+      "haut": 0.8
+    },
+    "retraites": {
+      "bas": 0.7,
+      "haut": 1.0
+    },
+    "sante": {
+      "bas": 0.8,
+      "haut": 1.2
+    },
+    "famille": {
+      "bas": 0.6,
+      "haut": 0.9
+    },
+    "emploi_chomage": {
+      "bas": 0.6,
+      "haut": 0.9
+    },
+    "ensup_recherche": {
+      "bas": 0.7,
+      "haut": 1.1
+    },
+    "interieur": {
+      "bas": 0.4,
+      "haut": 0.7
+    },
+    "travail_formation": {
+      "bas": 0.8,
+      "haut": 1.1
+    },
+    "oat": {
+      "bas": 0.0,
+      "haut": 0.0
+    }
   }
 }
