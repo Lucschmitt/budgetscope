@@ -525,9 +525,7 @@ export default function Sankey(props: SankeyProps) {
 
             {/* ── Infobulle principale ── */}
             <div className="sk-infobulle">
-              {modal.infobulle.split('
-
-').map((para, i) => (
+              {modal.infobulle.split('\n\n').map((para, i) => (
                 <p key={i} className="sk-infobulle-para">{para}</p>
               ))}
             </div>
