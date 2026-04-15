@@ -28,9 +28,20 @@ interface SankeyProps {
   deltas: Record<string, { min: number; max: number }>;
   mesuresActives: MesureActive[];
 }
+interface ModalDelta {
+  label: string; val: number; statut?: string;
+  effets?: string[]; source?: string;
+}
 interface ModalInfo {
-  title: string; body: string; source?: string; montant?: number;
-  deltas?: Array<{ label: string; val: number; statut?: string; effets?: string[]; source?: string }>;
+  title: string;
+  infobulle: string;          // texte principal formaté
+  montant?: number;           // valeur en Mrd€
+  montant_pct?: string;       // % du total (ex: "7,2 % des recettes")
+  source?: string;
+  source_url?: string;
+  type?: 'recette_plf' | 'recette_plfss' | 'depense_plf' | 'depense_plfss' | 'flux' | 'pool';
+  note?: string;              // note méthodologique si présente
+  deltas?: ModalDelta[];
 }
 
 // ── Couleurs ───────────────────────────────────────────────────────────────
@@ -53,6 +64,18 @@ const C = {
 const STATUT_COLOR: Record<string, string> = {
   observe: '#059669', hypothese_partielle: '#D97706',
   hypothese_non_verifiee: '#D97706', incertain: '#EA580C',
+};
+const STATUT_LABEL: Record<string, string> = {
+  observe: 'Observé', hypothese_partielle: 'Hypothèse partielle',
+  hypothese_non_verifiee: 'Non vérifiée', incertain: 'Incertain',
+};
+const TYPE_LABEL: Record<string, { label: string; color: string }> = {
+  recette_plf:   { label: 'Recette BGÉ',   color: '#2563EB' },
+  recette_plfss: { label: 'Recette Sécu',  color: '#0EA5E9' },
+  depense_plf:   { label: 'Dépense BGÉ',   color: '#7C3AED' },
+  depense_plfss: { label: 'Dépense Sécu',  color: '#A855F7' },
+  flux:          { label: 'Flux',          color: '#64748B' },
+  pool:          { label: 'Pool consolidé', color: '#64748B' },
 };
 function fmt(n: number) { return `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(0)} mds €`; }
 
@@ -318,10 +341,24 @@ export default function Sankey(props: SankeyProps) {
         const tN = allNodes[typeof d.target === 'object' ? d.target.index : d.target] as ND;
         const pid = tN?.posteId ?? sN?.posteId ?? '';
         const acts = mesuresActives.filter(m => m.poste === pid);
+        // Infobulle pédagogique selon le flux
+        const fluxInfobulles: Record<string, string> = {
+          'r_tva→c_etat': `Part de TVA affectée au Budget de l'État (${tvaVersEtat} Mrd€). Calculée en appliquant le taux légal de répartition (${(taux_tva_etat*100).toFixed(1)}%) à la TVA brute collectée (${tvaVal} Mrd€). Inclut la contribution à l'audiovisuel public.`,
+          'r_tva→c_secu': `Part de TVA affectée à la Sécurité sociale (${tvaVersSecu} Mrd€, taux ${(taux_tva_secu*100).toFixed(1)}%). Compense partiellement les allègements de cotisations patronales (Fillon, etc.) — mécanisme dit de "compensation" prévu par la loi Veil de 1994.`,
+          'r_tva→c_coll': `Part de TVA affectée directement aux collectivités territoriales (${tvaVersColl} Mrd€, taux ${(taux_tva_collectivites*100).toFixed(1)}%). Substitut à la CVAE supprimée en 2023. Ne transite pas par le Budget de l'État.`,
+          'r_oat→c_etat': `Part de l'emprunt OAT finançant le Budget de l'État (${oatEtat} Mrd€, soit 72% du total). Les OAT (Obligations Assimilables du Trésor) sont émises par l'AFT (Agence France Trésor). Leur remboursement est garanti par l'État mais crée une dette future.`,
+          'r_oat→c_secu': `Part de l'emprunt finançant la Sécurité sociale (${oatSecu} Mrd€, soit 28% du total). Géré via l'ACOSS (URSSAF Caisse Nationale). La CADES (Caisse d'Amortissement de la Dette Sociale) assure le remboursement progressif de la dette sociale accumulée.`,
+        };
+        const fluxKey = `${sN?.key}→${tN?.key}`;
+        const infobulle = fluxInfobulles[fluxKey]
+          ?? `Ce flux de ${d.value.toFixed(0)} Mrd€ représente le transfert de "${sN?.label ?? ''}" vers "${tN?.label ?? ''}". Il reflète la logique de consolidation du budget public : les recettes sont collectées puis allouées aux enveloppes de dépenses selon les clés légales.`;
         setModal({
           title: `${sN?.label ?? ''} → ${tN?.label ?? ''}`,
-          body: `Flux de ${d.value.toFixed(0)} milliards d'euros de "${sN?.label}" vers "${tN?.label}".`,
-          source: 'PLF / PLFSS 2025', montant: d.value,
+          infobulle,
+          montant: d.value,
+          montant_pct: `${((d.value / (sN?.val ?? d.value)) * 100).toFixed(1)} % de ${sN?.label ?? 'la source'}`,
+          source: 'PLF 2025 — Voies & Moyens Tome 1 · PLFSS 2025 Annexe 3',
+          type: 'flux',
           deltas: acts.map(m => ({ label: m.label, val: (m.impact_min + m.impact_max) / 2, statut: m.statut, effets: m.effets_indirects, source: m.source_label })),
         });
       });
@@ -350,10 +387,24 @@ export default function Sankey(props: SankeyProps) {
         .on('click', () => {
           const pid = nd.posteId ?? nd.key.replace(/^[rdc]_/, '');
           const acts = mesuresActives.filter(m => m.poste === pid);
+          const totalRef = nd.col === 0
+            ? (nd.color === C.rec_plf ? recettes_plf.reduce((s,p)=>s+p.valeurEffective,0) : recettes_plfss.reduce((s,p)=>s+p.valeurEffective,0))
+            : nd.col === 2
+              ? (nd.color === C.dep_plf ? depenses_plf.reduce((s,p)=>s+p.valeurEffective,0) : depenses_plfss.reduce((s,p)=>s+p.valeurEffective,0))
+              : 0;
+          const pct = totalRef > 0 ? ((nd.val / totalRef) * 100).toFixed(1) : null;
+          const typeKey: ModalInfo['type'] = nd.col === 0
+            ? (nd.color === C.rec_plf ? 'recette_plf' : 'recette_plfss')
+            : nd.col === 2
+              ? (nd.color === C.dep_plf ? 'depense_plf' : 'depense_plfss')
+              : 'pool';
           setModal({
             title: nd.label,
-            body: nd.infobulle ?? `Montant : ${(nd.val ?? 0).toFixed(0)} milliards d'euros.`,
-            source: nd.source, montant: nd.val,
+            infobulle: nd.infobulle ?? `Ce poste représente ${(nd.val ?? 0).toFixed(0)} milliards d'euros.`,
+            montant: nd.val,
+            montant_pct: pct ? `${pct} % du total` : undefined,
+            source: nd.source,
+            type: typeKey,
             deltas: acts.map(m => ({ label: m.label, val: (m.impact_min + m.impact_max) / 2, statut: m.statut, effets: m.effets_indirects, source: m.source_label })),
           });
         });
@@ -445,23 +496,56 @@ export default function Sankey(props: SankeyProps) {
       {modal && (
         <div className="sk-overlay" onClick={() => setModal(null)}>
           <div className="sk-modal" onClick={e => e.stopPropagation()}>
+
+            {/* ── En-tête ── */}
             <div className="sk-header">
-              <div>
+              <div className="sk-header-left">
+                {modal.type && TYPE_LABEL[modal.type] && (
+                  <span className="sk-type-badge" style={{ color: TYPE_LABEL[modal.type].color, borderColor: TYPE_LABEL[modal.type].color + '44', background: TYPE_LABEL[modal.type].color + '15' }}>
+                    {TYPE_LABEL[modal.type].label}
+                  </span>
+                )}
                 <h3 className="sk-title">{modal.title}</h3>
-                {modal.montant !== undefined && <span className="sk-montant">{modal.montant.toFixed(0)} milliards €</span>}
               </div>
               <button className="sk-close" onClick={() => setModal(null)}>✕</button>
             </div>
-            <p className="sk-body">{modal.body}</p>
+
+            {/* ── Bloc valeur ── */}
+            {modal.montant !== undefined && (
+              <div className="sk-valeur-bloc">
+                <div className="sk-valeur-left">
+                  <span className="sk-valeur-label">Montant</span>
+                  <span className="sk-valeur">{modal.montant.toFixed(0)} Mrd €</span>
+                </div>
+                {modal.montant_pct && (
+                  <span className="sk-valeur-pct">{modal.montant_pct}</span>
+                )}
+              </div>
+            )}
+
+            {/* ── Infobulle principale ── */}
+            <div className="sk-infobulle">
+              {modal.infobulle.split('
+
+').map((para, i) => (
+                <p key={i} className="sk-infobulle-para">{para}</p>
+              ))}
+            </div>
+
+            {/* ── Mesures actives sur ce poste ── */}
             {modal.deltas && modal.deltas.length > 0 && (
               <div className="sk-deltas">
-                <div className="sk-deltas-title">Impact de lois / propositions actives</div>
+                <div className="sk-deltas-title">Mesures actives sur ce poste</div>
                 {modal.deltas.map((d, i) => (
                   <div key={i} className={`sk-delta-item ${d.val >= 0 ? 'sk-pos' : 'sk-neg'}`}>
                     <div className="sk-delta-header">
                       <span className="sk-delta-label">{d.label}</span>
                       <span className="sk-delta-val">{fmt(d.val)}</span>
-                      {d.statut && <span className="sk-badge" style={{ color: STATUT_COLOR[d.statut] ?? C.muted }}>{d.statut.replace(/_/g, ' ')}</span>}
+                      {d.statut && (
+                        <span className="sk-badge" style={{ color: STATUT_COLOR[d.statut] ?? C.muted, borderColor: (STATUT_COLOR[d.statut] ?? C.muted) + '44', background: (STATUT_COLOR[d.statut] ?? C.muted) + '15' }}>
+                          {STATUT_LABEL[d.statut] ?? d.statut.replace(/_/g, ' ')}
+                        </span>
+                      )}
                     </div>
                     {d.effets && d.effets.length > 0 && (
                       <ul className="sk-effets">{d.effets.map((e, j) => <li key={j}>{e}</li>)}</ul>
@@ -471,36 +555,77 @@ export default function Sankey(props: SankeyProps) {
                 ))}
               </div>
             )}
-            {modal.source && <p className="sk-source">Source : {modal.source}</p>}
+
+            {/* ── Note méthodologique ── */}
+            {modal.note && (
+              <div className="sk-note">
+                <span className="sk-note-title">Note méthodologique</span>
+                <p className="sk-note-body">{modal.note}</p>
+              </div>
+            )}
+
+            {/* ── Footer source ── */}
+            {modal.source && (
+              <div className="sk-footer">
+                <span className="sk-footer-label">Source</span>
+                <span className="sk-footer-val">{modal.source}</span>
+              </div>
+            )}
+
           </div>
         </div>
       )}
 
       <style>{`
+        /* ── Overlay & modal ── */
         .sk-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .sk-modal { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.25rem 1.5rem; max-width: 460px; width: 100%; display: flex; flex-direction: column; gap: 0.875rem; max-height: 85vh; overflow-y: auto; }
-        .sk-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-        .sk-title  { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin: 0 0 0.2rem; }
-        .sk-montant { font-size: 0.78rem; color: #64748b; }
-        .sk-close  { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1rem; padding: 0; flex-shrink: 0; }
+        .sk-modal { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 0; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 0; max-height: 88vh; overflow-y: auto; }
+
+        /* ── En-tête ── */
+        .sk-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1.1rem 1.25rem 0.9rem; border-bottom: 1px solid #1e293b; }
+        .sk-header-left { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 0; }
+        .sk-type-badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 9999px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em; border: 1px solid; width: fit-content; text-transform: uppercase; }
+        .sk-title { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin: 0; line-height: 1.3; }
+        .sk-close { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1rem; padding: 0; flex-shrink: 0; margin-top: 2px; }
         .sk-close:hover { color: #e2e8f0; }
-        .sk-body   { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; margin: 0; }
-        .sk-deltas { display: flex; flex-direction: column; gap: 0.5rem; }
-        .sk-deltas-title { font-size: 0.68rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 0.3rem; border-bottom: 1px solid #1e293b; }
-        .sk-delta-item { padding: 0.6rem 0.75rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.3rem; }
-        .sk-pos { background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.25); }
-        .sk-neg { background: rgba(234,88,12,0.1);  border: 1px solid rgba(234,88,12,0.25); }
-        .sk-delta-header { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-        .sk-delta-label  { font-size: 0.8rem; font-weight: 500; color: #cbd5e1; flex: 1; }
-        .sk-delta-val    { font-size: 0.9rem; font-weight: 700; white-space: nowrap; }
+
+        /* ── Bloc valeur ── */
+        .sk-valeur-bloc { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 1.25rem; background: #0d1117; border-bottom: 1px solid #1e293b; }
+        .sk-valeur-left { display: flex; flex-direction: column; gap: 0.05rem; }
+        .sk-valeur-label { font-size: 0.6rem; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+        .sk-valeur { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; line-height: 1.1; }
+        .sk-valeur-pct { font-size: 0.72rem; color: #64748b; text-align: right; }
+
+        /* ── Infobulle principale ── */
+        .sk-infobulle { margin: 0.9rem 1.25rem 0; background: #0d1117; border-radius: 8px; padding: 0.75rem 0.875rem; border-left: 3px solid #2563EB; display: flex; flex-direction: column; gap: 0.45rem; }
+        .sk-infobulle-para { font-size: 0.79rem; color: #94a3b8; line-height: 1.65; margin: 0; }
+
+        /* ── Mesures actives ── */
+        .sk-deltas { margin: 0.75rem 1.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
+        .sk-deltas-title { font-size: 0.62rem; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; padding-bottom: 0.35rem; border-bottom: 1px solid #1e293b; }
+        .sk-delta-item { padding: 0.55rem 0.75rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.3rem; }
+        .sk-pos { background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.22); }
+        .sk-neg { background: rgba(234,88,12,0.08); border: 1px solid rgba(234,88,12,0.22); }
+        .sk-delta-header { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+        .sk-delta-label { font-size: 0.79rem; font-weight: 500; color: #cbd5e1; flex: 1; line-height: 1.35; }
+        .sk-delta-val { font-size: 0.88rem; font-weight: 700; white-space: nowrap; }
         .sk-pos .sk-delta-val { color: #10b981; }
         .sk-neg .sk-delta-val { color: #f97316; }
-        .sk-badge { font-size: 0.65rem; padding: 1px 5px; border-radius: 9999px; background: rgba(255,255,255,0.05); }
-        .sk-effets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.15rem; }
-        .sk-effets li { font-size: 0.73rem; color: #94a3b8; padding-left: 0.9rem; position: relative; line-height: 1.4; }
-        .sk-effets li::before { content: '→'; position: absolute; left: 0; color: #475569; }
-        .sk-delta-source { font-size: 0.65rem; color: #475569; font-style: italic; margin: 0; }
-        .sk-source { font-size: 0.68rem; color: #334155; font-style: italic; margin: 0; padding-top: 0.5rem; border-top: 1px solid #1e293b; }
+        .sk-badge { font-size: 0.62rem; padding: 1px 6px; border-radius: 9999px; border: 1px solid; font-weight: 500; white-space: nowrap; }
+        .sk-effets { list-style: none; margin: 0.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+        .sk-effets li { font-size: 0.72rem; color: #64748b; padding-left: 1rem; position: relative; line-height: 1.45; }
+        .sk-effets li::before { content: '→'; position: absolute; left: 0; color: #334155; }
+        .sk-delta-source { font-size: 0.63rem; color: #334155; font-style: italic; margin: 0.1rem 0 0; }
+
+        /* ── Note méthodologique ── */
+        .sk-note { margin: 0.75rem 1.25rem 0; background: rgba(210,153,34,0.07); border: 1px solid rgba(210,153,34,0.2); border-radius: 8px; padding: 0.65rem 0.875rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .sk-note-title { font-size: 0.62rem; color: #d29922; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .sk-note-body { font-size: 0.76rem; color: #94a3b8; line-height: 1.6; margin: 0; }
+
+        /* ── Footer source ── */
+        .sk-footer { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.65rem 1.25rem; margin-top: 0.75rem; border-top: 1px solid #1e293b; }
+        .sk-footer-label { font-size: 0.6rem; color: #334155; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; white-space: nowrap; }
+        .sk-footer-val { font-size: 0.7rem; color: #475569; font-style: italic; }
       `}</style>
     </div>
   );
