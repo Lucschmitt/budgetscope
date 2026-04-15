@@ -14,38 +14,38 @@
     },
     "note_perimetre": "Sankey en vision comptable nette (convention DGFiP/Bercy). Les dépenses fiscales (~80 Mrd) ne sont pas affichées dans le Sankey mais modélisables via les mesures.",
     "id": "plf_2026",
-    "label": "PLF 2026",
-    "label_long": "Projet de Loi de Finances 2026",
+    "label": "LFI 2026",
+    "label_long": "Loi de Finances Initiale 2026 (texte adopté 49-3)",
     "type": "previsionnel",
-    "date_vote": "2025-12-31",
-    "contexte": "Budget voté en décembre 2025. Dans un contexte de déficit élevé (5,4% du PIB en 2025), le gouvernement Lecornu vise une réduction du déficit à 5,3% du PIB en 2026, soit ~35 Mrd€ d'effort budgétaire. La LFSS 2026 prévoit notamment le gel des prestations sociales et une hausse des cotisations patronales.",
-    "contexte_court": "Crédits votés · Objectif déficit 2026 : ~5,3% du PIB",
-    "alerte": "📋 Budget prévisionnel 2026 — objectif de réduction du déficit de ~35 Mrd€ par rapport à 2025.",
+    "date_vote": "2026-02-02",
+    "contexte": "Loi de Finances Initiale 2026 adoptée par 49-3 le 2 février 2026. Budget général CP : 593,9 Mrd€. Défense en forte hausse (+6,5 Mrd€ conformément à la LPM). Charge de la dette en progression (+6,6 Mrd€). Objectif de réduction du déficit à 4,6% du PIB.",
+    "contexte_court": "Crédits votés LFI 2026 · Art. 148 — CP total BG : 593,9 Mrd€",
+    "alerte": "📋 Budget voté (49-3, 2 fév. 2026) — Crédits de paiement issus de l'état B officiel. Charge de la dette : +6,6 Mrd€ vs 2025. Défense : +6,5 Mrd€ (LPM).",
     "alerte_type": "info",
     "sources_officielles": {
-      "plf": "https://www.budget.gouv.fr/documentation/documents-budgetaires/exercice-2026",
-      "plfss": "https://www.securite-sociale.fr/la-secu-en-detail/loi-de-financement/annee-en-cours"
+      "lfi": "https://www.assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html",
+      "dgfip": "https://data.economie.gouv.fr/explore/dataset/situations-mensuelles-budgetaires-series-longues/"
     },
     "indicateurs": {
       "deficit_bge": {
         "label": "Déficit BGÉ",
-        "valeur_reference_mds": -150,
-        "valeur_sankey_mds": -90,
+        "valeur_reference_mds": -133.5,
+        "valeur_sankey_mds": -80,
         "infobulle_courte": "Déficit BGÉ prévu 2026 (PLF 2026)",
-        "infobulle": "Le déficit officiel du Budget Général de l'État (BGÉ) en 2025 est de −125 Mrd€, selon les données DGFiP (Situations Mensuelles Budgétaires au 31/12/2025). C'est la différence entre les recettes fiscales nettes (380 Mrd€) et les dépenses nettes (441 Mrd€ hors PSR + 69 Mrd€ PSR collectivités/UE = 510 Mrd€).",
+        "infobulle": "Le déficit du Budget Général de l'État 2026 s'établit à −133,5 Mrd€ selon le tableau d'équilibre de la LFI 2026 (Art. liminaire, texte adopté 49-3, 2 fév. 2026). Recettes nettes : 319,2 Mrd€. Dépenses nettes : 452,7 Mrd€.\n\nEn amélioration vs 2025 (−128,1 Mrd€ exécuté) grâce à la hausse des recettes fiscales (IR +5 Mrd€, IS stable). La charge de la dette progresse de +6,6 Mrd€.",
         "note_methodologique": "Pourquoi le Sankey affiche −75 Mrd et non −125 Mrd ?\n\nCe simulateur présente la TVA en valeur BRUTE (216 Mrd€) pour montrer comment elle est répartie entre l'État, la Sécu et les collectivités. La DGFiP, elle, ne comptabilise dans le BGÉ que la TVA NETTE qui revient à l'État (104 Mrd€).\n\nConséquence :\n→ Recettes Sankey = 386 Mrd (recettes DGFiP) + 118 Mrd (TVA Sécu+Collectivités affichée côté recettes) = 496 Mrd\n→ Recettes DGFiP  = 380 Mrd (TVA nette État uniquement)\n→ Écart recettes  = +116 Mrd\n\nLes dépenses PLF affichées (571 Mrd) sont les crédits votés, supérieurs aux dépenses DGFiP exécutées (510 Mrd) de 61 Mrd (crédits gelés/annulés/reportés).\n\nBilan : +116 Mrd de recettes apparentes − 61 Mrd de dépenses en moins = écart net de +50 Mrd → −125 + 50 = −75 Mrd affiché dans le Sankey.\n\nSources : DGFiP SMB 31/12/2025 · PLF 2025 Voies & Moyens Tome 1",
-        "source": "DGFiP — Situations Mensuelles Budgétaires 31/12/2025"
+        "source": "LFI 2026 — Texte adopté n°227 — Article liminaire — tableau d'équilibre"
       },
       "deficit_secu": {
         "label": "Déficit Sécu",
-        "valeur_reference_mds": -19,
-        "infobulle_courte": "Déficit Sécu prévu 2026 (LFSS 2026)",
+        "valeur_reference_mds": -9.0,
+        "infobulle_courte": "Déficit Sécu prévu LFI 2026 (LFSS 2026)",
         "infobulle": "Le déficit de la Sécurité sociale en 2025 est de −23 Mrd€, réparti entre la branche maladie (−17,2 Mrd€), la branche vieillesse+FSV (−5,8 Mrd€), la branche AT-MP (−0,5 Mrd€) et la branche autonomie (−0,3 Mrd€). Seule la branche famille est excédentaire (+0,8 Mrd€).\n\nContrairement au budget de l'État, ce déficit ne peut pas être réduit par des gels de crédits : les prestations sociales (retraites, remboursements de soins, allocations) sont des droits légaux versés automatiquement. La CADES (Caisse d'Amortissement de la Dette Sociale) porte le stock de dette sociale (121,7 Mrd€ en 2025).",
         "source": "CCSS — Commission des Comptes de la Sécurité Sociale, octobre 2025"
       },
       "dette_annuelle": {
         "label": "Dette créée cette année",
-        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.",
+        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.\n\nNote de périmètre : ce simulateur couvre uniquement le Budget Général de l'État (BGÉ) et les régimes de base de la Sécurité sociale. Le déficit consolidé affiché (−134,8 Mrd€ pour l'exécuté 2025) est inférieur au déficit public total INSEE (−152,5 Mrd€) car il n'inclut pas les collectivités locales (−15,6 Mrd€) ni les Organismes Divers d'Administration Centrale — ODAC (−2,1 Mrd€).",
         "source": "INSEE — Dette publique au sens de Maastricht T3 2025"
       },
       "dette_totale": {
@@ -78,8 +78,8 @@
       "valeur": 220,
       "min": 150,
       "max": 280,
-      "source": "DGFiP SMB 31/12/2025 — TVA brute avant affectation (nette BGÉ: 98 Mrd)",
-      "infobulle": "La TVA brute collectée s'élève à 216 Mrd€. Elle est répartie : 104 Mrd vers le budget de l'État (dont 98 Mrd recettes fiscales + 6 Mrd pour l'audiovisuel public), 37 Mrd vers la Sécurité sociale (compensation exonérations Fillon), 75 Mrd vers les collectivités territoriales. Le taux normal est de 20%, réduit à 5,5% ou 10% pour certains biens.",
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — TVA nette BGÉ (ligne 16) : 99 805 199 715 €. TVA brute estimée ~220 Mrd€ (nette + affectations Sécu/collectivités). Ce simulateur affiche la TVA brute.",
+      "infobulle": "TVA brute estimée 2026 : ~220 Mrd€. Répartition : État (99,8 Mrd€, taux 0.454), Sécu (~38 Mrd€), Collectivités (~77 Mrd€). La TVA nette BGÉ officielle est de 99,8 Mrd€ (état A LFI 2026). Légère hausse vs 2025 (216 Mrd€) portée par la reprise de la consommation.",
       "taux_tva_etat": 0.4815,
       "taux_tva_secu": 0.171,
       "taux_tva_collectivites": 0.347,
@@ -89,29 +89,29 @@
     {
       "id": "ir",
       "label": "Impôt sur le revenu",
-      "valeur": 102,
+      "valeur": 100,
       "min": 50,
       "max": 150,
-      "source": "DGFiP SMB 31/12/2025",
-      "infobulle": "L'IR est prélevé sur les revenus des ménages (salaires, pensions, revenus du capital). Barème progressif de 0% à 45%. Environ 44% des foyers fiscaux sont imposables. Les niches fiscales (quotient familial, PEA, Pinel...) représentent ~30 Mrd de manque à gagner non affiché ici."
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Impôt net sur le revenu (ligne 11) : 99 836 208 951 €",
+      "infobulle": "Impôt sur le revenu net 2026 : 99,8 Mrd€ (ligne 11 état A LFI 2026). En hausse de +5 Mrd€ vs 2025 (95 Mrd€) grâce à la progression des revenus et au gel du barème (absence d'indexation sur l'inflation)."
     },
     {
       "id": "is",
       "label": "Impôt sur les sociétés",
-      "valeur": 60,
+      "valeur": 62,
       "min": 30,
       "max": 100,
-      "source": "DGFiP SMB 31/12/2025",
-      "infobulle": "L'IS est prélevé sur les bénéfices des entreprises. Taux normal de 25% depuis 2022. Le Crédit Impôt Recherche (CIR, ~7 Mrd) et d'autres niches réduisent significativement le rendement effectif."
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Impôt net sur les sociétés (ligne 13) : 61 628 838 886 €",
+      "infobulle": "Impôt sur les sociétés net 2026 : 61,6 Mrd€ (ligne 13 état A LFI 2026). Stable par rapport à 2025 (60 Mrd€). Maintien du taux normal à 25% et de la surtaxe exceptionnelle introduite par la LFI 2025 sur les grandes entreprises."
     },
     {
       "id": "ticpe",
       "label": "TICPE",
-      "valeur": 15,
+      "valeur": 17,
       "min": 8,
       "max": 30,
-      "source": "DGFiP SMB 31/12/2025 — part BGÉ uniquement",
-      "infobulle": "La Taxe Intérieure de Consommation sur les Produits Énergétiques frappe essentiellement les carburants (essence, diesel). La part BGÉ est de 16 Mrd ; une fraction (~16 Mrd supplémentaires) est transférée aux collectivités. La TICPE baisse structurellement avec la transition énergétique."
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Accises sur les énergies ex-TICPE (ligne 1501) : 17 469 533 401 €",
+      "infobulle": "Accises sur les énergies (ex-TICPE) 2026 : 17,5 Mrd€ (ligne 1501 état A). En légère hausse vs 2025 (16 Mrd€) avec la remontée progressive de la taxe sur l'électricité (TICFE +3,5 Mrd€ en 2025 déjà)."
     },
     {
       "id": "oat",
@@ -119,28 +119,28 @@
       "valeur": 145,
       "min": 100,
       "max": 220,
-      "source": "AFT — Programme de financement 2025",
-      "infobulle": "L'Agence France Trésor émet des Obligations Assimilables du Trésor pour financer le déficit budgétaire. Ce n'est pas une recette fiscale : c'est de la dette future. En 2025, la charge des intérêts de la dette atteint 52 Mrd€, soit le 3ème poste de dépenses de l'État.",
+      "source": "AFT — Programme de financement 2026 (estimation : montant identique à 2025 ou légèrement réduit, à confirmer sur aft.gouv.fr)",
+      "infobulle": "Émissions d'OAT (Obligations Assimilables du Trésor) pour financer le déficit et renouveler la dette arrivant à maturité. Estimation 2026 : ~145 Mrd€. Le programme de financement définitif est publié par l'AFT en début d'année. LFI 2026 : solde BGÉ = -133,5 Mrd€ (tableau d'équilibre).",
       "fixe": true,
       "est_dette": true
     },
     {
       "id": "autres_rec_fiscales",
       "label": "Autres recettes fiscales",
-      "valeur": 90,
+      "valeur": 85,
       "min": 50,
       "max": 120,
-      "source": "DGFiP SMB 31/12/2025 — Autres recettes fiscales",
-      "infobulle": "Droits de succession (~17 Mrd), taxe sur les salaires (~13 Mrd), droits d'enregistrement et timbre (~20 Mrd), taxe sur les transactions financières (~2 Mrd), contribution sociale sur les bénéfices (~1,5 Mrd) et autres impositions directes. Total net après remboursements et dégrèvements d'État."
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Autres recettes fiscales nettes : 363 603 - 99 836 - 61 629 - 99 805 - 17 470 = 84 863 M€ (inclut enreg/timbre 42,9 Mrd + CSG affectée + taxes diverses)",
+      "infobulle": "Autres recettes fiscales BGÉ 2026 (84,9 Mrd€) : enregistrement, timbre et taxes indirectes (42,9 Mrd€ dont droits de succession 17,0 Mrd€ et donations 4,4 Mrd€), taxes sur les salaires, ISF/IFI, DMTO, TVS, et autres impôts affectés à l'État."
     },
     {
       "id": "autres_rec_nonfiscales",
       "label": "Autres recettes",
-      "valeur": 25,
+      "valeur": 29,
       "min": 10,
       "max": 40,
-      "source": "DGFiP SMB 31/12/2025 — Total recettes non fiscales",
-      "infobulle": "Recettes non fiscales : dividendes des participations de l'État (BPI, La Poste, EDF, etc. : ~8 Mrd), redevances domaniales, amendes et pénalités, remboursements de prêts, fonds de concours (~7 Mrd). Plus volatiles que les recettes fiscales."
+      "source": "LFI 2026 Texte adopté n°227 (49-3, 2 fév. 2026) — État A — Tableau d'équilibre — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Recettes non fiscales BGÉ : 28 900 M€ (tableau d'équilibre article liminaire LFI 2026)",
+      "infobulle": "Recettes non fiscales BGÉ 2026 : 28,9 Mrd€. Inclut : dividendes des participations de l'État (Bpifrance, EDF, etc.), redevances, produits des amendes, reversements de la BdF, rémunérations diverses. En forte hausse vs 2025 (24 Mrd€) avec la reprise des dividendes publics."
     }
   ],
   "recettes_plfss": [
@@ -190,73 +190,73 @@
       "valeur": 121,
       "min": 80,
       "max": 160,
-      "source": "PLF 2025 data.economie.gouv.fr — Enseignement scolaire 89 Mrd + Recherche & enseignement supérieur 31 Mrd",
-      "infobulle": "Premier poste de dépenses de l'État. Comprend les 860 000 enseignants du premier et second degré (Enseignement scolaire : 89 Mrd) et les universités, grandes écoles, organismes de recherche comme le CNRS (Recherche & sup. : 31 Mrd). Les salaires représentent ~85% du total."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Enseignement scolaire CP 89 600 182 989 € + Recherche et enseignement supérieur CP 31 633 945 500 €",
+      "infobulle": "Enseignement scolaire (89,6 Mrd€ CP) : maternelle, primaire, collège, lycée, technique agricole. Recherche et enseignement supérieur (31,6 Mrd€ CP) : universités, CNRS, INSERM, CEA, ANR. Total officiel : 121,2 Mrd€."
     },
     {
       "id": "pensions",
       "label": "Pensions fonctionnaires",
-      "valeur": 72,
+      "valeur": 69,
       "min": 50,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Pensions",
-      "infobulle": "Retraites des fonctionnaires civils et militaires de l'État (hors collectivités locales et hôpitaux, couverts par la CNRACL). Ce poste est distinct des retraites du régime général (côté Sécu). Il augmente mécaniquement avec les départs en retraite de la fonction publique d'État.",
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Régimes sociaux et de retraite CP 6 067 878 084 € + CAS Pensions civiles/militaires (~63 Mrd€ — état D, Prog. 741/742/743)",
+      "infobulle": "Pensions civiles et militaires de l'État. Mission Régimes sociaux (6,1 Mrd€, Prog. 198/197/195) : régimes spéciaux SNCF, RATP, mines. CAS Pensions (~63 Mrd€, état D) : retraites des fonctionnaires civils et militaires, financées par cotisations patronales et salariales. Total : ~69 Mrd€.",
       "fixe": true
     },
     {
       "id": "dette",
       "label": "Charge de la dette",
-      "valeur": 62,
+      "valeur": 59,
       "min": 52,
       "max": 52,
-      "source": "DGFiP SMB 31/12/2025 — Charges de la dette de l'État",
-      "infobulle": "Intérêts payés sur la dette publique accumulée (~3 200 Mrd). Ce poste est incompressible à court terme : il dépend des taux d'intérêt et du stock de dette. La hausse des taux depuis 2022 fait mécaniquement monter ce poste chaque année. La France paye ~52 Mrd d'intérêts en 2025.",
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Engagements financiers État CP 60 341 209 199 € — dont Charge de la dette Prog.117 : 58 615 000 000 €",
+      "infobulle": "Charge de la dette 2026 : 58,6 Mrd€ (Prog. 117, crédits évaluatifs). En hausse de +6,6 Mrd€ vs 2025 (52 Mrd€), reflet du stock de dette en progression et des taux d'intérêt élevés. La mission Engagements financiers totale (60,3 Mrd€) inclut aussi appels en garantie (0,8 Mrd€) et SNCF Réseau (0,7 Mrd€).",
       "fixe": true
     },
     {
       "id": "defense",
       "label": "Défense",
-      "valeur": 64,
+      "valeur": 66,
       "min": 40,
       "max": 80,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Défense",
-      "infobulle": "Budget des armées (armée de terre, marine, armée de l'air, gendarmerie nationale). Augmentation programmée par la Loi de Programmation Militaire 2024-2030 pour atteindre 2% du PIB (objectif OTAN). Comprend équipements, personnel militaire et opérations extérieures."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Mission Défense CP 66 475 476 236 € (AE : 92 828 480 008 €)",
+      "infobulle": "Budget Défense 2026 : 66,5 Mrd€ CP, en hausse de +6,5 Mrd€ vs 2025 (60 Mrd€), conformément à la LPM 2024-2030. Écart AE (92,8 Mrd€) / CP (66,5 Mrd€) : commandes pluriannuelles d'équipements militaires dont le paiement s'échelonne sur plusieurs années."
     },
     {
       "id": "solidarite",
       "label": "Solidarité & cohésion",
-      "valeur": 53,
+      "valeur": 56,
       "min": 35,
       "max": 75,
-      "source": "PLF 2025 data.economie.gouv.fr — Solidarité 30 Mrd + Cohésion des territoires 24 Mrd",
-      "infobulle": "Regroupe les minima sociaux (RSA, AAH, prime d'activité via l'État), l'aide au logement (APL : ~18 Mrd), l'hébergement d'urgence et les politiques d'insertion. Le RSA est financé par les départements mais l'État compense partiellement."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Solidarité, insertion et égalité des chances CP 31 281 524 154 € + Cohésion des territoires CP 22 570 898 614 € + Santé CP 1 888 133 258 €",
+      "infobulle": "Solidarité et insertion (31,3 Mrd€) : RSA, AAH, prime d'activité, protection enfance. Cohésion des territoires (22,6 Mrd€) : hébergement, logement, politique de la ville. Santé hors Assurance maladie (1,9 Mrd€) : prévention, sécurité sanitaire. Total : 55,7 Mrd€."
     },
     {
       "id": "securite",
       "label": "Sécurité & Justice",
-      "valeur": 39,
+      "valeur": 42,
       "min": 25,
       "max": 55,
-      "source": "PLF 2025 data.economie.gouv.fr — Sécurités 25 Mrd + Justice 13 Mrd",
-      "infobulle": "Police nationale, gendarmerie nationale (hors défense), sécurité civile (Sécurités : 25 Mrd) et système judiciaire — tribunaux, prisons, aide juridictionnelle (Justice : 13 Mrd). La justice française est chroniquement sous-dotée : 89€/habitant contre 130€ en moyenne UE."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Sécurités CP ~29 281 M€ (Police nationale 17 249 M€ + Gendarmerie 11 055 M€ + Civile 875 M€ + Routière 77 M€) + Justice CP 12 966 577 407 €",
+      "infobulle": "Sécurités (29,3 Mrd€) : Police nationale (17,2 Mrd€, Prog. 176), Gendarmerie nationale (11,1 Mrd€, Prog. 152), Sécurité civile (0,9 Mrd€), éducation routière. Justice (13,0 Mrd€) : tribunaux, administration pénitentiaire, PJJ. Total : 42,2 Mrd€."
     },
     {
       "id": "collectivites",
       "label": "Transferts collectivités",
-      "valeur": 46,
+      "valeur": 54,
       "min": 30,
       "max": 70,
-      "source": "DGFiP SMB 31/12/2025 — PSR collectivités 46 Mrd + Relations CT 4 Mrd (hors avances fiscales 134 Mrd)",
-      "infobulle": "Dotations versées aux communes, départements et régions (Dotation Globale de Fonctionnement, dotations de péréquation). Ne comprend pas les avances de fiscalité locale (134 Mrd) qui sont des flux de trésorerie remboursés dans l'année, ni la TVA transférée aux collectivités (75 Mrd, visible côté recettes)."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Relations avec les collectivités territoriales CP 3 959 044 081 € + PSR collectivités (~48 Mrd€ estimés)",
+      "infobulle": "RC (4,0 Mrd€ CP) + PSR collectivités (~50 Mrd€ estimés 2026 : DGF ~28,5 Mrd + FCTVA ~7,5 Mrd + autres compensations ~14 Mrd). Total estimé : ~54 Mrd€. En hausse vs 2025 (50 Mrd€) avec la progression de la DGF."
     },
     {
       "id": "transition_energetique",
       "label": "Transition énergétique",
-      "valeur": 18,
+      "valeur": 23,
       "min": 10,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Écologie, développement et mobilité durables",
-      "infobulle": "Financement des énergies renouvelables, primes à la conversion automobile, rénovation thermique des bâtiments publics, infrastructures de transport durables. +2,8 Mrd par rapport à 2024 pour accompagner la montée en charge du bonus écologique et de MaPrimeRénov'."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Écologie, développement et mobilité durables CP 22 763 823 547 €",
+      "infobulle": "Mission Écologie CP (22,8 Mrd€) : infrastructures et services de transports (5,0 Mrd€), service public de l'énergie (9,6 Mrd€), paysages/eau/biodiversité (5,3 Mrd€), prévention des risques (1,5 Mrd€), FACT (1,1 Mrd€), sûreté nucléaire (0,3 Mrd€)."
     },
     {
       "id": "emploi_formation",
@@ -264,17 +264,17 @@
       "valeur": 21,
       "min": 12,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Travail, emploi et administration des ministères sociaux",
-      "infobulle": "Financement de France Travail (ex-Pôle emploi), contrats aidés, apprentissage (exonérations de cotisations), formation professionnelle via France Compétences. L'apprentissage représente ~5 Mrd d'exonérations de charges patronales financées par ce budget."
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Travail, emploi et administration des ministères sociaux CP 20 820 551 935 €",
+      "infobulle": "Mission Travail CP (20,8 Mrd€) : accès et retour à l'emploi — France Travail (6,9 Mrd€), accompagnement des mutations économiques et apprentissage (11,8 Mrd€), qualité de l'emploi (0,08 Mrd€), soutien ministères sociaux (2,1 Mrd€). En léger recul vs 2025 (22 Mrd€)."
     },
     {
       "id": "autres_plf",
       "label": "Autres dépenses État",
-      "valeur": 60,
+      "valeur": 42,
       "min": 35,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Gestion finances 11 + Régimes sociaux 6 + France 2030 6 + APD 5 + AGTE 5 + Culture 4 + Économie 4 + Action ext. 4 + petites missions 17",
-      "infobulle": "Regroupe : gestion des finances publiques (DGFiP, douanes : 11 Mrd), régimes sociaux et retraite (SNCF, RATP, mines : 6 Mrd), France 2030 (innovation et industrie verte : 6 Mrd), aide publique au développement (5 Mrd), administration territoriale de l'État (5 Mrd), culture (4 Mrd), économie (4 Mrd), action extérieure (4 Mrd) et autres missions < 3 Mrd.",
+      "source": "LFI 2026 — Texte adopté n°227 (49-3, 2 fév. 2026) — État B — assemblee-nationale.fr/dyn/opendata/PRJLANR5L17BTA0227.html — Agrégat de 10 missions : Action extérieure (3,5) + AGTE (5,1) + Agriculture (4,1) + Culture (3,7) + Économie (3,5) + Immigration (2,1) + France 2030 (4,4) + Outre-mer (3,3) + Pouvoirs publics (1,1) + Sport/Jeunesse (1,3)",
+      "infobulle": "Regroupe 10 missions < 6 Mrd chacune : Action extérieure de l'État (3,5 Mrd€), administration générale et territoriale (5,1 Mrd€), agriculture (4,1 Mrd€), culture (3,7 Mrd€), économie (3,5 Mrd€), immigration (2,1 Mrd€), France 2030 (4,4 Mrd€), outre-mer (3,3 Mrd€), pouvoirs publics (1,1 Mrd€), sport/jeunesse (1,3 Mrd€) + gestion des finances publiques (11,0 Mrd€). Total : 42 Mrd€.",
       "detail": {
         "gestion_finances": 11,
         "regimes_sociaux": 6,
@@ -293,8 +293,8 @@
       "valeur": 24,
       "min": 18,
       "max": 28,
-      "source": "DGFiP SMB 31/12/2025 — PSR au profit de l'Union européenne",
-      "infobulle": "Prélèvement sur recettes versé à l'Union européenne au titre du budget communautaire. Calculé selon un barème basé sur le RNB et la TVA française. Ce montant finance les politiques communes (PAC, fonds structurels, recherche...). Il représente environ 0,8% du RNB français.",
+      "source": "LFI 2026 article d'équilibre — Prélèvement sur Recettes au profit de l'UE (estimation — à confirmer dans article 36)",
+      "infobulle": "PSR au profit de l'Union européenne (estimation 24 Mrd€). En légère hausse vs 2025 (23 Mrd€) en raison de la progression du budget pluriannuel européen. Ce montant est hors missions BG et inscrit à l'article d'équilibre de la LFI.",
       "fixe": true
     }
   ],

@@ -46,7 +46,7 @@
       },
       "dette_annuelle": {
         "label": "Dette créée cette année",
-        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.",
+        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.\n\nNote de périmètre : ce simulateur couvre uniquement le Budget Général de l'État (BGÉ) et les régimes de base de la Sécurité sociale. Le déficit consolidé affiché (−134,8 Mrd€ pour l'exécuté 2025) est inférieur au déficit public total INSEE (−152,5 Mrd€) car il n'inclut pas les collectivités locales (−15,6 Mrd€) ni les Organismes Divers d'Administration Centrale — ODAC (−2,1 Mrd€).",
         "source": "INSEE — Dette publique au sens de Maastricht T3 2025"
       },
       "dette_totale": {
