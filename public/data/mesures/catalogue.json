@@ -17,7 +17,13 @@
       "Dépend d'une coopération internationale — unilatéral difficile"
     ],
     "analogies_historiques": [
-      { "pays": "France", "annee": 1990, "mesure": "ISF (0,5–1,5% patrimoine net > 800k€)", "impact_observe": "Rendement ~5 Mrd€/an, exils fiscaux estimés +10 000 foyers", "score": 0.65 }
+      {
+        "pays": "France",
+        "annee": 1990,
+        "mesure": "ISF (0,5–1,5% patrimoine net > 800k€)",
+        "impact_observe": "Rendement ~5 Mrd€/an, exils fiscaux estimés +10 000 foyers",
+        "score": 0.65
+      }
     ],
     "questions": [
       "Taux de fuite réel au-delà de 3M€ ?",
@@ -64,7 +70,13 @@
       "Baisse consommation estimée −0.3% (multiplicateur OFCE)"
     ],
     "analogies_historiques": [
-      { "pays": "France", "annee": 2014, "mesure": "Hausse TVA normale 19,6% → 20%", "impact_observe": "+6 Mrd recettes, −0.2% consommation", "score": 0.92 }
+      {
+        "pays": "France",
+        "annee": 2014,
+        "mesure": "Hausse TVA normale 19,6% → 20%",
+        "impact_observe": "+6 Mrd recettes, −0.2% consommation",
+        "score": 0.92
+      }
     ],
     "questions": [
       "Impact sur pouvoir d'achat des ménages modestes ?"
@@ -134,7 +146,13 @@
       "Hausse invalidité/longue maladie (+1 à +2 Mrd)"
     ],
     "analogies_historiques": [
-      { "pays": "Allemagne", "annee": 2007, "mesure": "Recul âge légal 65 → 67 ans (progressif)", "impact_observe": "Économies ~12 Mrd€/an à terme, taux emploi seniors +8pts", "score": 0.75 }
+      {
+        "pays": "Allemagne",
+        "annee": 2007,
+        "mesure": "Recul âge légal 65 → 67 ans (progressif)",
+        "impact_observe": "Économies ~12 Mrd€/an à terme, taux emploi seniors +8pts",
+        "score": 0.75
+      }
     ],
     "questions": [
       "Taux d'emploi seniors réellement atteignable ?",
@@ -182,7 +200,13 @@
       "Risque emploi peu qualifié (+0 à +2% destruction nette selon OFCE)"
     ],
     "analogies_historiques": [
-      { "pays": "Allemagne", "annee": 2015, "mesure": "Introduction SMIC fédéral 8,5€/h", "impact_observe": "Impact emploi quasi-nul, +consommation", "score": 0.55 }
+      {
+        "pays": "Allemagne",
+        "annee": 2015,
+        "mesure": "Introduction SMIC fédéral 8,5€/h",
+        "impact_observe": "Impact emploi quasi-nul, +consommation",
+        "score": 0.55
+      }
     ],
     "questions": [
       "Impact sur l'emploi peu qualifié ?",
@@ -230,11 +254,256 @@
       "Réduction dépendance énergétique (−importations fossiles)"
     ],
     "analogies_historiques": [
-      { "pays": "États-Unis", "annee": 2022, "mesure": "Inflation Reduction Act (~370 Mrd$ sur 10 ans)", "impact_observe": "Investissement privé induit 3× l'investissement public", "score": 0.5 }
+      {
+        "pays": "États-Unis",
+        "annee": 2022,
+        "mesure": "Inflation Reduction Act (~370 Mrd$ sur 10 ans)",
+        "impact_observe": "Investissement privé induit 3× l'investissement public",
+        "score": 0.5
+      }
     ],
     "questions": [
       "Capacité d'absorption réelle de l'économie ?",
       "Financement : dette, impôts, ou partenariats privés ?"
+    ]
+  },
+  {
+    "id": "baisse-electricite-15",
+    "label": "Baisse de 15% des factures d'électricité",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "depense",
+    "budget": "plf",
+    "poste": "autres",
+    "impact_min": 4,
+    "impact_max": 8,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le programme annonce une baisse de 15% des factures d'électricité (~200€ par foyer). Selon le périmètre (tarif réglementé uniquement ou élargi), le coût budgétaire annuel de compensation est estimé à 4–8 Mrd€.",
+    "effets_indirects": [
+      "Soutien au pouvoir d'achat des ménages (effet conso)",
+      "Réduit le signal-prix sur la sobriété énergétique"
+    ],
+    "analogies_historiques": [
+      {
+        "pays": "France",
+        "annee": 2022,
+        "mesure": "Bouclier tarifaire électricité",
+        "impact_observe": "Coût annuel élevé selon prix de gros, supérieur à 10 Mrd€ au pic de crise",
+        "score": 0.82
+      }
+    ],
+    "questions": [
+      "Mécanisme exact: baisse tarifaire, fiscalité ou subvention budgétaire ?",
+      "La mesure est-elle ciblée sur les ménages modestes ou universelle ?"
+    ]
+  },
+  {
+    "id": "ppv-10000-exoneree",
+    "label": "Prime de pouvoir d'achat jusqu'à 10 000€ exonérée",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "ir",
+    "impact_min": -2.5,
+    "impact_max": -4.5,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Relèvement du plafond d'exonération de la prime de partage de la valeur à 10 000€: gain net pour salariés concernés mais moindres recettes d'impôt/cotisations. Coût estimé à 2,5–4,5 Mrd€ selon taux de recours des entreprises.",
+    "effets_indirects": [
+      "Peut substituer des hausses pérennes de salaires par des primes ponctuelles",
+      "Soutien court terme à la consommation"
+    ],
+    "analogies_historiques": [
+      {
+        "pays": "France",
+        "annee": 2019,
+        "mesure": "Prime exceptionnelle de pouvoir d'achat (PEPA/PPV)",
+        "impact_observe": "Coût fiscal et social significatif, ciblé sur salariés du privé",
+        "score": 0.86
+      }
+    ],
+    "questions": [
+      "Exonération maintenue pour tous les niveaux de revenus ?",
+      "Effet de substitution avec négociations salariales de branche ?"
+    ]
+  },
+  {
+    "id": "mutuelle-publique-1euro",
+    "label": "Mutuelle publique à 1€ par jour",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "depense",
+    "budget": "plfss",
+    "poste": "sante",
+    "impact_min": 1.2,
+    "impact_max": 2.5,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le programme vise 3 millions de Français sans mutuelle via une offre publique à 1€/jour (extension de la complémentaire santé solidaire). Coût net estimé à 1,2–2,5 Mrd€ après participation des bénéficiaires.",
+    "effets_indirects": [
+      "Réduction du renoncement aux soins",
+      "Hausse potentielle de consommation de soins de ville"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Niveau de panier de soins couvert ?",
+      "Part financée par l'État vs organismes complémentaires ?"
+    ]
+  },
+  {
+    "id": "taxe-rachats-actions",
+    "label": "Taxe sur les rachats d'actions",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "is",
+    "impact_min": 1,
+    "impact_max": 3,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Création/renforcement d'une taxe sur les rachats d'actions pour financer la rénovation énergétique des logements. Rendement estimé à 1–3 Mrd€ selon assiette et taux retenus.",
+    "effets_indirects": [
+      "Peut réorienter les entreprises vers l'investissement productif",
+      "Risque de contournement via dividendes ou opérations intra-groupe"
+    ],
+    "analogies_historiques": [
+      {
+        "pays": "États-Unis",
+        "annee": 2023,
+        "mesure": "Taxe fédérale de 1% sur buybacks",
+        "impact_observe": "Recettes modestes mais non nulles, adaptation partielle des politiques de distribution",
+        "score": 0.58
+      }
+    ],
+    "questions": [
+      "Taux exact de la taxe ?",
+      "Coordination avec fiscalité européenne des capitaux ?"
+    ]
+  },
+  {
+    "id": "renovation-energetique-300k",
+    "label": "Rénovation énergétique de 300 000 logements supplémentaires",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "depense",
+    "budget": "plf",
+    "poste": "transition",
+    "impact_min": 1,
+    "impact_max": 2.5,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le programme annonce un fonds de rénovation pour financer 300 000 logements supplémentaires d'ici 2027. Selon l'aide moyenne par logement et le cofinancement privé, coût annuel estimé à 1–2,5 Mrd€.",
+    "effets_indirects": [
+      "Réduction durable des factures énergétiques et des émissions",
+      "Effet d'activité positif pour le bâtiment"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Ciblage précis: passoires thermiques, copropriétés, maisons individuelles ?",
+      "Part de subvention vs prêts bonifiés ?"
+    ]
+  },
+  {
+    "id": "exoneration-dmto-primoaccedants",
+    "label": "Exonération des droits de mutation jusqu'à 250 000€ pour 1 million de jeunes",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "autres",
+    "impact_min": -2,
+    "impact_max": -4,
+    "statut": "hypothese_partielle",
+    "confiance": "faible",
+    "infobulle": "L'exonération de DMTO (frais de notaire hors émoluments) pour l'accession des jeunes réduirait les recettes des départements/collectivités. Coût agrégé estimé à 2–4 Mrd€ selon le nombre d'achats effectivement éligibles.",
+    "effets_indirects": [
+      "Stimule la mobilité résidentielle et les transactions",
+      "Nécessite potentiellement compensation de l'État aux collectivités"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Critères d'âge et de revenus retenus ?",
+      "Compensation intégrale des pertes de recettes locales ?"
+    ]
+  },
+  {
+    "id": "lutte-fraude-renforcee",
+    "label": "Renforcement de la lutte contre les fraudes sociales et fiscales",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "autres",
+    "impact_min": 1.5,
+    "impact_max": 4,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le programme met en avant 17 Mrd€ de redressements en 2023 et promet un nouveau projet de loi anti-fraude. Les recettes nettes supplémentaires pérennes sont estimées à 1,5–4 Mrd€/an selon taux de recouvrement effectif.",
+    "effets_indirects": [
+      "Améliore l'équité fiscale perçue",
+      "Coûts administratifs de contrôle en hausse"
+    ],
+    "analogies_historiques": [
+      {
+        "pays": "France",
+        "annee": 2023,
+        "mesure": "Renforcement contrôle fiscal et social",
+        "impact_observe": "Hausse des montants notifiés, conversion partielle en recettes encaissées",
+        "score": 0.88
+      }
+    ],
+    "questions": [
+      "Part recouvrée à 12/24 mois des redressements annoncés ?",
+      "Répartition fraude sociale vs fiscale dans l'objectif de rendement ?"
+    ]
+  },
+  {
+    "id": "exoneration-successions-150k",
+    "label": "Exonération des successions/donations jusqu'à 150 000€ par enfant",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "ir",
+    "impact_min": -1.5,
+    "impact_max": -3.5,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le relèvement des seuils exonérés de transmission (150k€ par enfant, 100k€ aux petits-enfants) diminue les droits de mutation à titre gratuit. Moindre recette estimée à 1,5–3,5 Mrd€ selon paramètres finaux.",
+    "effets_indirects": [
+      "Soutien aux transmissions intrafamiliales de patrimoine",
+      "Effet distributif favorable aux ménages déjà détenteurs d'actifs"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Fréquence de renouvellement des abattements ?",
+      "Mesure compensée par d'autres prélèvements patrimoniaux ?"
+    ]
+  },
+  {
+    "id": "revalorisation-retraites-agricoles-25ans",
+    "label": "Retraites agricoles: calcul sur les 25 meilleures années",
+    "source_label": "Programme Ensemble — Législatives 2024",
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "type": "depense",
+    "budget": "plfss",
+    "poste": "retraites",
+    "impact_min": 0.2,
+    "impact_max": 0.6,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le programme annonce environ +100€/mois pour près de la moitié des nouveaux retraités agricoles à partir de 2026. Coût initial estimé à 0,2–0,6 Mrd€/an, croissant avec la montée en charge.",
+    "effets_indirects": [
+      "Réduction de la pauvreté des retraités agricoles",
+      "Effet budgétaire croissant à moyen terme"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Périmètre exact des bénéficiaires (chefs d'exploitation, conjoints, aides) ?",
+      "Montée en charge annuelle du dispositif après 2026 ?"
     ]
   }
 ]

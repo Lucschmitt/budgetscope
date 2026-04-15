@@ -5,5 +5,12 @@
     "label_court": "NFP",
     "couleur": "#E53935",
     "file": "/budgetscope/data/programmes/nfp_2024.json"
+  },
+  {
+    "id": "ensemble_2024",
+    "label": "Ensemble",
+    "label_court": "Ensemble",
+    "couleur": "#1E88E5",
+    "file": "/budgetscope/data/programmes/ensemble_2024.json"
   }
 ]
