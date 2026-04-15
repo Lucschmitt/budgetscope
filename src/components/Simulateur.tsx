@@ -279,7 +279,15 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
   const [programmeActif, setProgrammeActif] = useState<string | null>(null);
   const [ficheOuverte, setFiche]            = useState<Mesure | null>(null);
   const [ficheProgramme, setFicheProgramme] = useState<ProgrammeMeta | undefined>(undefined);
-  const [panelInfo, setPanelInfo]           = useState<{title: string; content: string; source?: string} | null>(null);
+  const [panelInfo, setPanelInfo] = useState<{
+    title: string;
+    valeur?: string;
+    valeur_cls?: string;
+    infobulle: string;
+    note_methodologique?: string;
+    chiffres_cles?: { label: string; valeur: string; note?: string }[];
+    source?: string;
+  } | null>(null);
 
   // ── Mesures actives : issues du programme sélectionné ─────────────────
   // En mode à la carte (futur), ce Set sera rempli manuellement par l'user
@@ -514,7 +522,18 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
       {/* ── Indicateurs ── */}
       <div className="indicators">
         <div className="indicator indicator--double"
-             onClick={() => indics.deficit_bge && setPanelInfo({ title: indics.deficit_bge.label ?? 'Déficit BGÉ', content: (indics.deficit_bge.infobulle ?? '') + '\n\n' + (indics.deficit_bge.note_methodologique ?? ''), source: indics.deficit_bge.source })}
+             onClick={() => indics.deficit_bge && setPanelInfo({
+               title: indics.deficit_bge.label ?? 'Déficit BGÉ',
+               valeur: fmt(deficitBGE) + ' €',
+               valeur_cls: deficitBGE >= 0 ? 'val-pos' : 'val-neg',
+               infobulle: indics.deficit_bge.infobulle ?? '',
+               note_methodologique: indics.deficit_bge.note_methodologique,
+               chiffres_cles: [
+                 { label: 'Valeur de référence (DGFiP)', valeur: fmt(indics.deficit_bge.valeur_reference_mds) + ' €', note: 'Périmètre officiel DGFiP' },
+                 { label: 'Valeur affichée dans le Sankey', valeur: fmt(indics.deficit_bge.valeur_sankey_mds ?? deficitBGE) + ' €', note: 'TVA brute + crédits votés' },
+               ],
+               source: indics.deficit_bge.source,
+             })}
              style={{ cursor: indics.deficit_bge ? 'pointer' : 'default' }}>
           <div className="ind-label">Déficits annuels{indics.deficit_bge && <span className="ind-info-icon">ⓘ</span>}</div>
           <div className="ind-double-row">
@@ -522,14 +541,37 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
             <span className={`ind-double-val ${deficitBGE >= 0 ? 'val-pos' : 'val-neg'}`}>{fmt(deficitBGE)} €</span>
           </div>
           <div className="ind-double-row"
-               onClick={e => { e.stopPropagation(); indics.deficit_secu && setPanelInfo({ title: indics.deficit_secu.label ?? 'Déficit Sécu', content: indics.deficit_secu.infobulle ?? '', source: indics.deficit_secu.source }); }}>
+               onClick={e => { e.stopPropagation(); indics.deficit_secu && setPanelInfo({
+                 title: indics.deficit_secu.label ?? 'Déficit Sécu',
+                 valeur: fmt(deficitSecu) + ' €',
+                 valeur_cls: deficitSecu >= 0 ? 'val-pos' : 'val-neg',
+                 infobulle: indics.deficit_secu.infobulle ?? '',
+                 chiffres_cles: [
+                   { label: 'Valeur de référence (CCSS)', valeur: fmt(indics.deficit_secu.valeur_reference_mds ?? deficitSecu) + ' €', note: 'Régimes de base uniquement' },
+                   { label: 'Branche maladie', valeur: '−17,2 Mrd €', note: 'Principale source du déficit' },
+                   { label: 'Branche vieillesse + FSV', valeur: '−5,8 Mrd €' },
+                   { label: 'Branche famille', valeur: '+0,8 Mrd €', note: 'Seule branche excédentaire' },
+                 ],
+                 source: indics.deficit_secu.source,
+               }); }}>
             <span className="ind-double-label">Sécu</span>
             <span className={`ind-double-val ${deficitSecu >= 0 ? 'val-pos' : 'val-neg'}`}>{fmt(deficitSecu)} €</span>
           </div>
         </div>
 
         <div className="indicator"
-             onClick={() => indics.dette_annuelle && setPanelInfo({ title: indics.dette_annuelle.label ?? 'Dette ajoutée', content: indics.dette_annuelle.infobulle ?? '', source: indics.dette_annuelle.source })}
+             onClick={() => indics.dette_annuelle && setPanelInfo({
+               title: indics.dette_annuelle.label ?? 'Dette créée cette année',
+               valeur: fmt(detteAjoutee) + ' €',
+               valeur_cls: detteAjoutee < 0 ? 'val-neg' : 'val-pos',
+               infobulle: indics.dette_annuelle.infobulle ?? '',
+               chiffres_cles: [
+                 { label: 'En % du PIB', valeur: Math.abs(detteAjouteePct).toFixed(1) + ' %' },
+                 { label: 'Périmètre couvert', valeur: 'BGÉ + Sécu (régimes de base)', note: 'Hors collectivités (−15,6 Mrd) et ODAC (−2,1 Mrd)' },
+                 { label: 'Déficit public total INSEE', valeur: '−152,5 Mrd € (5,1 % PIB)', note: 'Périmètre Maastricht complet' },
+               ],
+               source: indics.dette_annuelle.source,
+             })}
              style={{ cursor: indics.dette_annuelle ? 'pointer' : 'default' }}>
           <div className="ind-label">Dette ajoutée {data.meta.annee ?? ''}{indics.dette_annuelle && <span className="ind-info-icon">ⓘ</span>}</div>
           <div className={`ind-value ${detteAjoutee < 0 ? 'val-neg' : 'val-pos'}`}>{fmt(detteAjoutee)} €</div>
@@ -537,7 +579,19 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         </div>
 
         <div className="indicator"
-             onClick={() => indics.dette_totale && setPanelInfo({ title: indics.dette_totale.label ?? 'Dette totale', content: indics.dette_totale.infobulle ?? '', source: indics.dette_totale.source })}
+             onClick={() => indics.dette_totale && setPanelInfo({
+               title: indics.dette_totale.label ?? 'Dette totale',
+               valeur: detteTotaleMds.toLocaleString('fr-FR') + ' Mrd €',
+               valeur_cls: detteTotalePct > 100 ? 'val-neg' : 'val-neutral',
+               infobulle: indics.dette_totale.infobulle ?? '',
+               chiffres_cles: [
+                 { label: 'En % du PIB', valeur: detteTotalePct.toFixed(1) + ' %', note: 'Référence Maastricht : 60 %' },
+                 { label: 'En années de PIB', valeur: detteEnAnnesPIB.toFixed(2) + ' ans' },
+                 { label: 'France vs zone euro', valeur: '115,6 % vs 87 % (moy. ZE)', note: '3ème pays le plus endetté après Grèce et Italie' },
+                 { label: 'Variation vs 2024', valeur: '+154,4 Mrd € (+3 pts PIB)' },
+               ],
+               source: indics.dette_totale.source,
+             })}
              style={{ cursor: indics.dette_totale ? 'pointer' : 'default' }}>
           <div className="ind-label">Dette totale{indics.dette_totale && <span className="ind-info-icon">ⓘ</span>}</div>
           <div className={`ind-value ${detteTotalePct > 100 ? 'val-neg' : 'val-neutral'}`}>{detteTotaleMds.toLocaleString('fr-FR')} Mrd€</div>
@@ -545,7 +599,19 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         </div>
 
         <div className="indicator indicator--croissance"
-             onClick={() => indics.croissance && setPanelInfo({ title: indics.croissance.label ?? 'Impact macro estimé', content: indics.croissance.infobulle ?? 'Estimation basée sur les multiplicateurs keynésiens OFCE/IPP. CT = effet demande immédiat. MT = convergence comportementale. LT = effets structurels (santé, capital humain) — non chiffrés si données manquantes.', source: indics.croissance?.source ?? 'Multiplicateurs OFCE / IPP' })}
+             onClick={() => setPanelInfo({
+               title: 'Impact macro estimé',
+               valeur: cochees.size === 0 ? 'Aucune mesure active' : `CT : ${fmtPct(impactCroissance.ct.bas)} à ${fmtPct(impactCroissance.ct.haut)} %`,
+               valeur_cls: cochees.size === 0 ? 'val-neutral' : impactCroissance.ct.bas >= 0 ? 'val-pos' : 'val-neg',
+               infobulle: indics.croissance?.infobulle ?? 'Estimation via multiplicateurs keynésiens OFCE/IPP.',
+               note_methodologique: 'CT (1–2 ans) : multiplicateur keynésien sur la demande — une recette supplémentaire prélève du pouvoir d'achat (impact négatif) ; une dépense supplémentaire injecte dans l'économie (impact positif).\n\nMT (3–7 ans) : les effets comportementaux atténuent l'impact initial. Modélisé à ×0,4 du multiplicateur CT, convergence vers l'équilibre.\n\nLT (8–20 ans) : effets structurels sur le capital humain, la santé, la transition énergétique. Non chiffrés automatiquement — renseignés manuellement dans le catalogue de mesures après analyse.',
+               chiffres_cles: cochees.size > 0 ? [
+                 { label: 'CT  1–2 ans', valeur: `${fmtPct(impactCroissance.ct.bas)} à ${fmtPct(impactCroissance.ct.haut)} %`, note: 'Multiplicateur keynésien direct' },
+                 { label: 'MT  3–7 ans', valeur: `${fmtPct(impactCroissance.mt.bas)} à ${fmtPct(impactCroissance.mt.haut)} %`, note: 'Convergence comportementale (×0,4)' },
+                 { label: 'LT  8–20 ans', valeur: impactCroissance.lt ? `${fmtPct(impactCroissance.lt.bas)} à ${fmtPct(impactCroissance.lt.haut)} %` : 'non chiffré', note: 'Effets structurels — renseignés au cas par cas' },
+               ] : undefined,
+               source: indics.croissance?.source ?? 'Multiplicateurs OFCE 2023 / IPP 2022',
+             })}
              style={{ cursor: 'pointer' }}>
           <div className="ind-label">Impact macro estimé <span className="ind-info-icon">ⓘ</span></div>
           <div className="croissance-horizons">
@@ -606,20 +672,72 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         </div>
       )}
 
-      {/* ── Panneau méthodologique ── */}
+      {/* ── Panneau indicateur enrichi ── */}
       {panelInfo && (
         <div className="panel-overlay" onClick={() => setPanelInfo(null)}>
           <div className="panel-drawer" onClick={e => e.stopPropagation()}>
+
+            {/* En-tête */}
             <div className="panel-header">
               <h3 className="panel-title">{panelInfo.title}</h3>
               <button className="panel-close" onClick={() => setPanelInfo(null)}>✕</button>
             </div>
+
             <div className="panel-body">
-              {panelInfo.content.split('\n\n').map((para, i) => (
-                <p key={i} className="panel-para">{para}</p>
-              ))}
+
+              {/* Valeur principale */}
+              {panelInfo.valeur && (
+                <div className="panel-valeur-bloc">
+                  <span className="panel-valeur-label">Valeur simulée</span>
+                  <span className={`panel-valeur ${panelInfo.valeur_cls ?? 'val-neutral'}`}>{panelInfo.valeur}</span>
+                </div>
+              )}
+
+              {/* Infobulle principale */}
+              <div className="panel-infobulle">
+                {panelInfo.infobulle.split('\n\n').map((para, i) => (
+                  <p key={i} className="panel-para">{para}</p>
+                ))}
+              </div>
+
+              {/* Chiffres clés */}
+              {panelInfo.chiffres_cles && panelInfo.chiffres_cles.length > 0 && (
+                <div className="panel-section">
+                  <h4 className="panel-section-title">Chiffres clés</h4>
+                  <div className="panel-chiffres">
+                    {panelInfo.chiffres_cles.map((c, i) => (
+                      <div key={i} className="panel-chiffre-row">
+                        <div className="panel-chiffre-left">
+                          <span className="panel-chiffre-label">{c.label}</span>
+                          {c.note && <span className="panel-chiffre-note">{c.note}</span>}
+                        </div>
+                        <span className="panel-chiffre-val">{c.valeur}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Note méthodologique */}
+              {panelInfo.note_methodologique && (
+                <div className="panel-section panel-section--methodo">
+                  <h4 className="panel-section-title">Note méthodologique</h4>
+                  {panelInfo.note_methodologique.split('\n\n').map((para, i) => (
+                    <p key={i} className="panel-para panel-para--methodo">{para}</p>
+                  ))}
+                </div>
+              )}
+
             </div>
-            {panelInfo.source && <div className="panel-footer">Source : {panelInfo.source}</div>}
+
+            {/* Footer source */}
+            {panelInfo.source && (
+              <div className="panel-footer">
+                <span className="panel-footer-label">Source</span>
+                <span className="panel-footer-val">{panelInfo.source}</span>
+              </div>
+            )}
+
           </div>
         </div>
       )}
@@ -789,15 +907,46 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         .modal-footer strong { color: var(--text-secondary); }
 
         .panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; display: flex; justify-content: flex-end; }
-        .panel-drawer { background: #0d1117; border-left: 1px solid var(--border); width: min(480px, 92vw); height: 100%; display: flex; flex-direction: column; overflow: hidden; animation: slideIn 0.2s ease; }
+        .panel-drawer { background: #0d1117; border-left: 1px solid var(--border); width: min(520px, 92vw); height: 100%; display: flex; flex-direction: column; overflow: hidden; animation: slideIn 0.2s ease; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .panel-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 0; }
         .panel-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0; }
         .panel-close:hover { color: var(--text-primary); }
-        .panel-body { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        .panel-para { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.65; margin: 0; white-space: pre-line; }
-        .panel-footer { padding: 0.875rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--text-muted); font-style: italic; flex-shrink: 0; }
+        .panel-body { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Valeur principale */
+        .panel-valeur-bloc { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); }
+        .panel-valeur-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .panel-valeur { font-size: 1.4rem; font-weight: 700; }
+
+        /* Infobulle principale */
+        .panel-infobulle { background: var(--bg-secondary); border-radius: var(--radius); padding: 0.875rem 1rem; border-left: 3px solid var(--accent-blue); display: flex; flex-direction: column; gap: 0.5rem; }
+        .panel-para { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7; margin: 0; white-space: pre-line; }
+
+        /* Sections */
+        .panel-section { display: flex; flex-direction: column; gap: 0.5rem; }
+        .panel-section-title { font-size: 0.63rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+        /* Chiffres clés */
+        .panel-chiffres { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .panel-chiffre-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; gap: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .panel-chiffre-row:last-child { border-bottom: none; }
+        .panel-chiffre-row:nth-child(odd) { background: var(--bg-secondary); }
+        .panel-chiffre-left { display: flex; flex-direction: column; gap: 0.1rem; flex: 1; min-width: 0; }
+        .panel-chiffre-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+        .panel-chiffre-note { font-size: 0.65rem; color: var(--text-muted); }
+        .panel-chiffre-val { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; flex-shrink: 0; }
+
+        /* Note méthodologique */
+        .panel-section--methodo { background: rgba(210,153,34,0.06); border: 1px solid rgba(210,153,34,0.2); border-radius: var(--radius); padding: 0.75rem 1rem; }
+        .panel-section--methodo .panel-section-title { color: #d29922; }
+        .panel-para--methodo { font-size: 0.76rem; color: var(--text-muted); }
+
+        /* Footer */
+        .panel-footer { padding: 0.75rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; align-items: baseline; flex-shrink: 0; }
+        .panel-footer-label { font-size: 0.63rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; white-space: nowrap; }
+        .panel-footer-val { font-size: 0.72rem; color: var(--text-secondary); font-style: italic; }
 
         /* ── Indicateur croissance tri-horizon ── */
         .indicator--croissance { text-align: left; }
