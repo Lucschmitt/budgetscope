@@ -86,7 +86,8 @@ const STATUT: Record<string, { label: string; cls: string }> = {
   hypothese_non_verifiee: { label: 'Non vérifiée', cls: 'badge-hypothese' },
   incertain:              { label: 'Incertain',    cls: 'badge-incertain' },
 };
-const fmt = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(0)} mds`;
+const fmt    = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(0)} mds`;
+const fmtPct = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(2)}`;
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 // ── Feature flag — mode à la carte (future fonctionnalité) ─────────────────
@@ -357,18 +358,50 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
   const totalDepPlf   = useMemo(() => data.depenses_plf.reduce((s, p) => s + ve(p), 0),   [veff]);
   const totalDepPlfss = useMemo(() => data.depenses_plfss.reduce((s, p) => s + ve(p), 0), [veff]);
 
+  // ── Impact croissance — trois horizons ───────────────────────────────────
+  // CT (1-2 ans) : multiplicateurs keynésiens
+  //   recette → prélèvement → impact négatif sur demande
+  //   dépense → injection  → impact positif sur demande
+  // MT (3-7 ans) : effets comportementaux atténués (×0.4), convergence vers 0
+  // LT (8-20 ans) : lu depuis impact_croissance_lt du catalogue si renseigné
   const impactCroissance = useMemo(() => {
-    let bas = 0, haut = 0;
+    let ctBas = 0, ctHaut = 0;
+    let mtBas = 0, mtHaut = 0;
+    let ltBas: number | null = 0, ltHaut: number | null = 0;
+    let ltManquant = false;
+
     for (const id of cochees) {
-      const m = getMesure(id);
+      const m = getMesure(id) as any;
       if (!m) continue;
       const mult = multiplicateurs[m.poste];
       if (!mult) continue;
-      const d = (m.impact_min + m.impact_max) / 2;
-      bas  -= d * mult.bas  / data.meta.pib * 100;
-      haut -= d * mult.haut / data.meta.pib * 100;
+      const d   = (m.impact_min + m.impact_max) / 2;
+      const pib = data.meta.pib;
+      // Recette = prélèvement (signe −), Dépense = injection (signe +)
+      const signe = m.type === 'recette' ? -1 : 1;
+
+      ctBas  += signe * d * mult.bas  / pib * 100;
+      ctHaut += signe * d * mult.haut / pib * 100;
+      mtBas  += signe * d * mult.bas  / pib * 100 * 0.4;
+      mtHaut += signe * d * mult.haut / pib * 100 * 0.4;
+
+      if (m.impact_croissance_lt?.min != null && m.impact_croissance_lt?.max != null) {
+        ltBas  = (ltBas  ?? 0) + (m.impact_croissance_lt.min as number);
+        ltHaut = (ltHaut ?? 0) + (m.impact_croissance_lt.max as number);
+      } else {
+        ltManquant = true;
+      }
     }
-    return { bas: Math.min(bas, haut), haut: Math.max(bas, haut) };
+
+    if (ltManquant) { ltBas = null; ltHaut = null; }
+
+    return {
+      ct: { bas: Math.min(ctBas,  ctHaut),  haut: Math.max(ctBas,  ctHaut)  },
+      mt: { bas: Math.min(mtBas,  mtHaut),  haut: Math.max(mtBas,  mtHaut)  },
+      lt: ltBas !== null && ltHaut !== null
+            ? { bas: Math.min(ltBas, ltHaut), haut: Math.max(ltBas, ltHaut) }
+            : null,
+    };
   }, [cochees, catalogueActif, multiplicateurs]);
 
   const indics = (data.meta as any).indicateurs ?? {};
@@ -511,12 +544,33 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
           <div className="ind-sub">{detteEnAnnesPIB.toFixed(2)} ann. PIB · {detteTotalePct.toFixed(1)} %</div>
         </div>
 
-        <div className="indicator"
-             onClick={() => indics.croissance && setPanelInfo({ title: indics.croissance.label ?? 'Impact croissance', content: indics.croissance.infobulle ?? '', source: indics.croissance.source })}
-             style={{ cursor: indics.croissance ? 'pointer' : 'default' }}>
-          <div className="ind-label">Impact croissance{indics.croissance && <span className="ind-info-icon">ⓘ</span>}</div>
-          <div className="ind-value val-neutral">{impactCroissance.bas.toFixed(2)} à {impactCroissance.haut.toFixed(2)} %</div>
-          <div className="ind-sub">Multiplicateurs OFCE / IPP</div>
+        <div className="indicator indicator--croissance"
+             onClick={() => indics.croissance && setPanelInfo({ title: indics.croissance.label ?? 'Impact macro estimé', content: indics.croissance.infobulle ?? 'Estimation basée sur les multiplicateurs keynésiens OFCE/IPP. CT = effet demande immédiat. MT = convergence comportementale. LT = effets structurels (santé, capital humain) — non chiffrés si données manquantes.', source: indics.croissance?.source ?? 'Multiplicateurs OFCE / IPP' })}
+             style={{ cursor: 'pointer' }}>
+          <div className="ind-label">Impact macro estimé <span className="ind-info-icon">ⓘ</span></div>
+          <div className="croissance-horizons">
+            <div className="croissance-row">
+              <span className="croissance-horizon-label">CT <span className="croissance-horizon-sub">1–2 ans</span></span>
+              <span className={`croissance-val ${impactCroissance.ct.haut >= 0 && impactCroissance.ct.bas >= 0 ? 'val-pos' : impactCroissance.ct.haut <= 0 && impactCroissance.ct.bas <= 0 ? 'val-neg' : 'val-neutral'}`}>
+                {fmtPct(impactCroissance.ct.bas)} à {fmtPct(impactCroissance.ct.haut)} %
+              </span>
+            </div>
+            <div className="croissance-row">
+              <span className="croissance-horizon-label">MT <span className="croissance-horizon-sub">3–7 ans</span></span>
+              <span className={`croissance-val ${impactCroissance.mt.haut >= 0 && impactCroissance.mt.bas >= 0 ? 'val-pos' : impactCroissance.mt.haut <= 0 && impactCroissance.mt.bas <= 0 ? 'val-neg' : 'val-neutral'}`}>
+                {fmtPct(impactCroissance.mt.bas)} à {fmtPct(impactCroissance.mt.haut)} %
+              </span>
+            </div>
+            <div className="croissance-row">
+              <span className="croissance-horizon-label">LT <span className="croissance-horizon-sub">8–20 ans</span></span>
+              {impactCroissance.lt
+                ? <span className={`croissance-val ${impactCroissance.lt.haut >= 0 && impactCroissance.lt.bas >= 0 ? 'val-pos' : impactCroissance.lt.haut <= 0 && impactCroissance.lt.bas <= 0 ? 'val-neg' : 'val-neutral'}`}>
+                    {fmtPct(impactCroissance.lt.bas)} à {fmtPct(impactCroissance.lt.haut)} %
+                  </span>
+                : <span className="croissance-nc">non chiffré</span>
+              }
+            </div>
+          </div>
         </div>
 
         <div className="indicator">
@@ -744,6 +798,15 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         .panel-body { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
         .panel-para { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.65; margin: 0; white-space: pre-line; }
         .panel-footer { padding: 0.875rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--text-muted); font-style: italic; flex-shrink: 0; }
+
+        /* ── Indicateur croissance tri-horizon ── */
+        .indicator--croissance { text-align: left; }
+        .croissance-horizons { display: flex; flex-direction: column; gap: 0.18rem; margin-top: 0.3rem; }
+        .croissance-row { display: flex; justify-content: space-between; align-items: center; padding: 0.18rem 0; border-top: 1px solid var(--border-subtle); gap: 0.5rem; }
+        .croissance-horizon-label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+        .croissance-horizon-sub { font-size: 0.58rem; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+        .croissance-val { font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .croissance-nc { font-size: 0.68rem; color: var(--text-muted); font-style: italic; }
 
         .budget-selector { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
         .budget-btn { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.75rem; transition: all 0.15s; }
