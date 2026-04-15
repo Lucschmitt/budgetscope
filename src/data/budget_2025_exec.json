@@ -1,10 +1,10 @@
 {
   "meta": {
     "annee": 2025,
-    "pib": 2970,
-    "dette_initiale_pct": 117.4,
-    "dette_montant_mds": 3482,
-    "dette_source": "INSEE — Comptes nationaux APU 2025, mars 2026. Dette fin 2024 : 112,6% du PIB (point de départ du PLF 2025).",
+    "pib": 2994,
+    "dette_initiale_pct": 115.6,
+    "dette_montant_mds": 3460.5,
+    "dette_source": "INSEE — Comptes nationaux APU, premiers résultats 2025, mars 2026",
     "sources": {
       "bge_recettes": "DGFiP — Situations mensuelles budgétaires, exécution 31/12/2025",
       "bge_depenses": "data.economie.gouv.fr — PLF 2025 dépenses par mission + DGFiP exécution",
@@ -13,36 +13,36 @@
       "tva_split": "PLF 2025 Voies & Moyens Tome 1 + CCSS sept. 2025"
     },
     "note_perimetre": "Sankey en vision comptable nette (convention DGFiP/Bercy). Les dépenses fiscales (~80 Mrd) ne sont pas affichées dans le Sankey mais modélisables via les mesures.",
-    "id": "plf_2025",
-    "label": "PLF 2025",
-    "label_long": "Projet de Loi de Finances 2025",
-    "type": "previsionnel",
+    "id": "exec_2025",
+    "label": "Exécuté 2025",
+    "label_long": "Budget exécuté 2025 (données DGFiP au 31/12/2025)",
+    "type": "execute",
     "date_vote": "2024-12-20",
-    "contexte": "Budget voté par le Parlement en décembre 2024. Les crédits présentés sont les autorisations de dépenses votées. En cours d'exécution, le gouvernement peut geler, annuler ou reporter une partie de ces crédits — en 2025, environ 75 Mrd€ de crédits ont été gelés ou non consommés par rapport aux crédits votés.",
-    "contexte_court": "Crédits votés au Parlement · Déficit structurel prévu : ~125 Mrd€",
-    "alerte": "⚠️ Budget prévisionnel — les dépenses affichées sont les crédits votés, supérieurs aux dépenses réellement exécutées (~75 Mrd€ gelés ou annulés en cours d'année)",
-    "alerte_type": "warning",
+    "contexte": "Budget réellement exécuté en 2025, d'après les comptes nationaux définitifs publiés par l'INSEE en mars 2026. Déficit public total : −152,5 Mrd€ (5,1% du PIB), en amélioration par rapport à 2024 (5,8% du PIB). Dette publique : 3 460,5 Mrd€ (115,6% du PIB). Par rapport au PLF 2025, environ 75 Mrd€ de crédits votés ont été gelés ou annulés en cours d'année.",
+    "contexte_court": "Exécution réelle INSEE mars 2026 · Déficit : −152,5 Mrd€ · 5,1% du PIB",
+    "alerte": "✅ Budget exécuté 2025 — données INSEE (comptes nationaux, mars 2026). Déficit État : −128,1 Mrd€ · Déficit Sécu (ASSO) : −6,7 Mrd€ · Dette : 3 460,5 Mrd€ (115,6% PIB)",
+    "alerte_type": "info",
     "sources_officielles": {
-      "plf": "https://www.budget.gouv.fr/documentation/documents-budgetaires/exercice-2025",
-      "plfss": "https://www.securite-sociale.fr/home/plfss/plfss-2025.html",
-      "dgfip": "https://data.economie.gouv.fr/explore/dataset/situations-mensuelles-budgetaires-series-longues/"
+      "dgfip": "https://data.economie.gouv.fr/explore/dataset/situations-mensuelles-budgetaires-series-longues/",
+      "plfss": "https://www.securite-sociale.fr/home/rapport-de-la-ccss/octobre-2025.html"
     },
+    "date_execution": "2025-12-31",
     "indicateurs": {
       "deficit_bge": {
         "label": "Déficit BGÉ",
-        "valeur_reference_mds": -125,
+        "valeur_reference_mds": -128.1,
         "valeur_sankey_mds": -75,
-        "infobulle_courte": "Déficit du Budget Général de l'État (périmètre DGFiP officiel)",
-        "infobulle": "Le déficit officiel du Budget Général de l'État (BGÉ) en 2025 est de −125 Mrd€, selon les données DGFiP (Situations Mensuelles Budgétaires au 31/12/2025). C'est la différence entre les recettes fiscales nettes (380 Mrd€) et les dépenses nettes (441 Mrd€ hors PSR + 69 Mrd€ PSR collectivités/UE = 510 Mrd€).",
-        "note_methodologique": "Pourquoi le Sankey affiche −75 Mrd et non −125 Mrd ?\n\nCe simulateur présente la TVA en valeur BRUTE (216 Mrd€) pour montrer comment elle est répartie entre l'État, la Sécu et les collectivités. La DGFiP, elle, ne comptabilise dans le BGÉ que la TVA NETTE qui revient à l'État (104 Mrd€).\n\nConséquence :\n→ Recettes Sankey = 386 Mrd (recettes DGFiP) + 118 Mrd (TVA Sécu+Collectivités affichée côté recettes) = 496 Mrd\n→ Recettes DGFiP  = 380 Mrd (TVA nette État uniquement)\n→ Écart recettes  = +116 Mrd\n\nLes dépenses PLF affichées (571 Mrd) sont les crédits votés, supérieurs aux dépenses DGFiP exécutées (510 Mrd) de 61 Mrd (crédits gelés/annulés/reportés).\n\nBilan : +116 Mrd de recettes apparentes − 61 Mrd de dépenses en moins = écart net de +50 Mrd → −125 + 50 = −75 Mrd affiché dans le Sankey.\n\nSources : DGFiP SMB 31/12/2025 · PLF 2025 Voies & Moyens Tome 1",
-        "source": "DGFiP — Situations Mensuelles Budgétaires 31/12/2025"
+        "infobulle_courte": "Déficit de l'État exécuté 2025 — comptes nationaux INSEE",
+        "infobulle": "Le déficit de l'État en 2025 s'établit à −128,1 Mrd€ selon les comptes nationaux des administrations publiques publiés par l'INSEE en mars 2026 (notification à Eurostat). Ce chiffre est calculé en comptabilité nationale (SEC 2010), périmètre plus large que le budget général de l'État : il inclut les organismes divers d'administration centrale (ODAC) et les opérations financières hors budget.\n\nRappel : le déficit du seul Budget Général de l'État (BGÉ) selon DGFiP est de −124,7 Mrd€ (SMB 31/12/2025), légèrement différent car la comptabilité nationale réintègre certains flux hors budget.",
+        "note_methodologique": "Pourquoi ce simulateur affiche −75 Mrd alors que l'INSEE publie −128 Mrd ?\n\nCe simulateur utilise la TVA en valeur BRUTE (216 Mrd€) pour montrer visuellement comment elle est répartie entre l'État, la Sécu et les collectivités. C'est un choix pédagogique : le flux TVA → collectivités (75 Mrd€) et TVA → Sécu (37 Mrd€) sont ainsi visibles dans le diagramme.\n\nLa DGFiP et l'INSEE ne comptabilisent dans les recettes de l'État que la TVA qui lui revient nettement, soit 104 Mrd€ (après affectation aux collectivités et à la Sécu).\n\nConséquence sur le calcul du déficit :\n→ Recettes Sankey (TVA brute) : +216 Mrd€ côté État apparent\n→ Recettes DGFiP/INSEE (TVA nette) : +104 Mrd€ côté État réel\n→ Écart : +112 Mrd€ de recettes 'en plus' dans le Sankey\n\nCôté dépenses, ce simulateur affiche les crédits votés (PLF) et non les dépenses exécutées. Pour la version exécutée, les dépenses sont ajustées mais restent approximatives.\n\nBilan : +112 Mrd recettes apparentes − ~60 Mrd dépenses ajustées = +~52 Mrd d'écart → −128 + 52 = −76 Mrd affiché (vs −75 Mrd, l'écart résiduel vient des arrondis).\n\nSources : INSEE Informations Rapides n°78, mars 2026 · DGFiP SMB 31/12/2025 · PLF 2025 Voies & Moyens Tome 1",
+        "source": "INSEE — Comptes nationaux APU 2025, mars 2026"
       },
       "deficit_secu": {
         "label": "Déficit Sécu",
-        "valeur_reference_mds": -23,
-        "infobulle_courte": "Déficit de la Sécurité sociale (CCSS oct. 2025)",
-        "infobulle": "Le déficit de la Sécurité sociale en 2025 est de −23 Mrd€, réparti entre la branche maladie (−17,2 Mrd€), la branche vieillesse+FSV (−5,8 Mrd€), la branche AT-MP (−0,5 Mrd€) et la branche autonomie (−0,3 Mrd€). Seule la branche famille est excédentaire (+0,8 Mrd€).\n\nContrairement au budget de l'État, ce déficit ne peut pas être réduit par des gels de crédits : les prestations sociales (retraites, remboursements de soins, allocations) sont des droits légaux versés automatiquement. La CADES (Caisse d'Amortissement de la Dette Sociale) porte le stock de dette sociale (121,7 Mrd€ en 2025).",
-        "source": "CCSS — Commission des Comptes de la Sécurité Sociale, octobre 2025"
+        "valeur_reference_mds": -6.7,
+        "infobulle_courte": "Déficit des administrations de sécurité sociale 2025 — INSEE",
+        "infobulle": "Le déficit des administrations de sécurité sociale (ASSO) en 2025 est de −6,7 Mrd€ selon les comptes nationaux INSEE (mars 2026).\n\nCe chiffre est différent du déficit des régimes de base seuls (−23 Mrd€ selon la CCSS d'octobre 2025) pour deux raisons :\n\n1. Le périmètre INSEE inclut la CADES (Caisse d'Amortissement de la Dette Sociale) qui rembourse activement la dette sociale — ses amortissements réduisent mécaniquement le déficit consolidé d'environ 16 Mrd€.\n\n2. L'Unédic (assurance chômage) était en excédent en 2025 grâce au bon niveau de l'emploi, ce qui compense partiellement le déficit des régimes de base.\n\nRésumé :\n→ Régimes de base (CCSS) : −23,0 Mrd€\n→ CADES (amortissement dette) : +16,0 Mrd€ environ\n→ Unédic + autres : +0,3 Mrd€\n→ Total ASSO (INSEE) : −6,7 Mrd€\n\nLe simulateur utilise les données CCSS (régimes de base uniquement) car elles permettent de détailler le déficit par branche (maladie, vieillesse, famille...). L'écart avec l'INSEE sera mentionné dans l'infobulle.",
+        "source": "INSEE — Comptes nationaux APU 2025, mars 2026 · CCSS octobre 2025"
       },
       "dette_annuelle": {
         "label": "Dette créée cette année",
@@ -51,8 +51,8 @@
       },
       "dette_totale": {
         "label": "Dette totale",
-        "infobulle": "Stock total de la dette publique française au sens de Maastricht à fin 2025 : 3 460,5 Mrd€ (115,6% du PIB), selon les comptes nationaux définitifs INSEE publiés en mars 2026. Augmentation de 154,4 Mrd€ par rapport à fin 2024 (112,6% du PIB).\n\nExprimée en années de PIB : 3 460,5 / 2 994 = 1,16 années — il faudrait 1,16 année de production économique nationale entière pour rembourser la dette intégralement. La référence du Traité de Maastricht est 60% du PIB, soit 0,6 année de PIB.\n\nLa France est le 3ème pays le plus endetté de la zone euro, derrière la Grèce (153%) et l'Italie (135%). La moyenne zone euro est de 87%.",
-        "source": "INSEE — Informations Rapides n°78, mars 2026"
+        "infobulle": "Stock total de la dette publique française au sens de Maastricht (État + Sécu + collectivités + ODAC), à fin T3 2025. Exprimée en années de PIB : combien d'années de production économique nationale seraient nécessaires pour rembourser la dette intégralement. La référence du Traité de Maastricht est 60% du PIB, soit 0,6 année de PIB.",
+        "source": "INSEE — Informations Rapides n°322, 19 décembre 2025"
       },
       "croissance": {
         "label": "Impact croissance",
@@ -188,10 +188,10 @@
     {
       "id": "education",
       "label": "Éducation & Recherche",
-      "valeur": 120,
+      "valeur": 81,
       "min": 80,
       "max": 160,
-      "source": "PLF 2025 data.economie.gouv.fr — Enseignement scolaire 89 Mrd + Recherche & enseignement supérieur 31 Mrd",
+      "source": "PLF 2025 data.economie.gouv.fr — Enseignement scolaire 89 Mrd + Recherche & enseignement supérieur 31 Mrd — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Premier poste de dépenses de l'État. Comprend les 860 000 enseignants du premier et second degré (Enseignement scolaire : 89 Mrd) et les universités, grandes écoles, organismes de recherche comme le CNRS (Recherche & sup. : 31 Mrd). Les salaires représentent ~85% du total."
     },
     {
@@ -200,7 +200,7 @@
       "valeur": 69,
       "min": 50,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Pensions",
+      "source": "PLF 2025 data.economie.gouv.fr — Mission Pensions — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Retraites des fonctionnaires civils et militaires de l'État (hors collectivités locales et hôpitaux, couverts par la CNRACL). Ce poste est distinct des retraites du régime général (côté Sécu). Il augmente mécaniquement avec les départs en retraite de la fonction publique d'État.",
       "fixe": true
     },
@@ -210,71 +210,71 @@
       "valeur": 52,
       "min": 52,
       "max": 52,
-      "source": "DGFiP SMB 31/12/2025 — Charges de la dette de l'État",
+      "source": "DGFiP SMB 31/12/2025 — Charges de la dette de l'État — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Intérêts payés sur la dette publique accumulée (~3 200 Mrd). Ce poste est incompressible à court terme : il dépend des taux d'intérêt et du stock de dette. La hausse des taux depuis 2022 fait mécaniquement monter ce poste chaque année. La France paye ~52 Mrd d'intérêts en 2025.",
       "fixe": true
     },
     {
       "id": "defense",
       "label": "Défense",
-      "valeur": 60,
+      "valeur": 55,
       "min": 40,
       "max": 80,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Défense",
+      "source": "PLF 2025 data.economie.gouv.fr — Mission Défense — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Budget des armées (armée de terre, marine, armée de l'air, gendarmerie nationale). Augmentation programmée par la Loi de Programmation Militaire 2024-2030 pour atteindre 2% du PIB (objectif OTAN). Comprend équipements, personnel militaire et opérations extérieures."
     },
     {
       "id": "solidarite",
       "label": "Solidarité & cohésion",
-      "valeur": 54,
+      "valeur": 51,
       "min": 35,
       "max": 75,
-      "source": "PLF 2025 data.economie.gouv.fr — Solidarité 30 Mrd + Cohésion des territoires 24 Mrd",
+      "source": "PLF 2025 data.economie.gouv.fr — Solidarité 30 Mrd + Cohésion des territoires 24 Mrd — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Regroupe les minima sociaux (RSA, AAH, prime d'activité via l'État), l'aide au logement (APL : ~18 Mrd), l'hébergement d'urgence et les politiques d'insertion. Le RSA est financé par les départements mais l'État compense partiellement."
     },
     {
       "id": "securite",
       "label": "Sécurité & Justice",
-      "valeur": 38,
+      "valeur": 36,
       "min": 25,
       "max": 55,
-      "source": "PLF 2025 data.economie.gouv.fr — Sécurités 25 Mrd + Justice 13 Mrd",
+      "source": "PLF 2025 data.economie.gouv.fr — Sécurités 25 Mrd + Justice 13 Mrd — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Police nationale, gendarmerie nationale (hors défense), sécurité civile (Sécurités : 25 Mrd) et système judiciaire — tribunaux, prisons, aide juridictionnelle (Justice : 13 Mrd). La justice française est chroniquement sous-dotée : 89€/habitant contre 130€ en moyenne UE."
     },
     {
       "id": "collectivites",
       "label": "Transferts collectivités",
-      "valeur": 50,
+      "valeur": 46,
       "min": 30,
       "max": 70,
-      "source": "DGFiP SMB 31/12/2025 — PSR collectivités 46 Mrd + Relations CT 4 Mrd (hors avances fiscales 134 Mrd)",
+      "source": "DGFiP SMB 31/12/2025 — PSR collectivités 46 Mrd + Relations CT 4 Mrd (hors avances fiscales 134 Mrd) — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Dotations versées aux communes, départements et régions (Dotation Globale de Fonctionnement, dotations de péréquation). Ne comprend pas les avances de fiscalité locale (134 Mrd) qui sont des flux de trésorerie remboursés dans l'année, ni la TVA transférée aux collectivités (75 Mrd, visible côté recettes)."
     },
     {
       "id": "transition_energetique",
       "label": "Transition énergétique",
-      "valeur": 21,
+      "valeur": 18,
       "min": 10,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Écologie, développement et mobilité durables",
+      "source": "PLF 2025 data.economie.gouv.fr — Mission Écologie, développement et mobilité durables — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Financement des énergies renouvelables, primes à la conversion automobile, rénovation thermique des bâtiments publics, infrastructures de transport durables. +2,8 Mrd par rapport à 2024 pour accompagner la montée en charge du bonus écologique et de MaPrimeRénov'."
     },
     {
       "id": "emploi_formation",
       "label": "Emploi & Formation",
-      "valeur": 22,
+      "valeur": 20,
       "min": 12,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Travail, emploi et administration des ministères sociaux",
+      "source": "PLF 2025 data.economie.gouv.fr — Mission Travail, emploi et administration des ministères sociaux — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Financement de France Travail (ex-Pôle emploi), contrats aidés, apprentissage (exonérations de cotisations), formation professionnelle via France Compétences. L'apprentissage représente ~5 Mrd d'exonérations de charges patronales financées par ce budget."
     },
     {
       "id": "autres_plf",
       "label": "Autres dépenses État",
-      "valeur": 62,
+      "valeur": 50,
       "min": 35,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Gestion finances 11 + Régimes sociaux 6 + France 2030 6 + APD 5 + AGTE 5 + Culture 4 + Économie 4 + Action ext. 4 + petites missions 17",
+      "source": "PLF 2025 data.economie.gouv.fr — Gestion finances 11 + Régimes sociaux 6 + France 2030 6 + APD 5 + AGTE 5 + Culture 4 + Économie 4 + Action ext. 4 + petites missions 17 — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Regroupe : gestion des finances publiques (DGFiP, douanes : 11 Mrd), régimes sociaux et retraite (SNCF, RATP, mines : 6 Mrd), France 2030 (innovation et industrie verte : 6 Mrd), aide publique au développement (5 Mrd), administration territoriale de l'État (5 Mrd), culture (4 Mrd), économie (4 Mrd), action extérieure (4 Mrd) et autres missions < 3 Mrd.",
       "detail": {
         "gestion_finances": 11,
@@ -294,7 +294,7 @@
       "valeur": 23,
       "min": 18,
       "max": 28,
-      "source": "DGFiP SMB 31/12/2025 — PSR au profit de l'Union européenne",
+      "source": "DGFiP SMB 31/12/2025 — PSR au profit de l'Union européenne — ajusté exécution DGFiP 31/12/2025",
       "infobulle": "Prélèvement sur recettes versé à l'Union européenne au titre du budget communautaire. Calculé selon un barème basé sur le RNB et la TVA française. Ce montant finance les politiques communes (PAC, fonds structurels, recherche...). Il représente environ 0,8% du RNB français.",
       "fixe": true
     }
@@ -385,28 +385,6 @@
         "Taux de fuite réel au-delà de 3M€ de patrimoine ?",
         "Faisabilité sans accord G20 ?",
         "Impact sur les PME familiales non cotées ?"
-      ],
-      "impact_long_terme": {
-        "horizon_ans": 5,
-        "min": 15,
-        "max": 22,
-        "mecanisme": "Réduction progressive des comportements d'évitement fiscal au fur et à mesure de la montée en charge des accords internationaux. L'impact est inférieur à l'impact initial car les grandes fortunes adaptent leur structuration patrimoniale.",
-        "statut": "hypothese_non_verifiee"
-      },
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": -0.37,
-        "max": -0.593
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": [
-        "Accord multilatéral G20 ou OCDE sur la taxation minimale",
-        "Définition commune du patrimoine net imposable (actifs financiers, immobilier, participation entreprises)",
-        "Mécanisme d'échange automatique d'informations entre États renforcé"
       ]
     },
     {
@@ -431,19 +409,7 @@
       "questions": [
         "Quel report réel vers les urgences ?",
         "Impact sur les maladies à déclaration obligatoire ?"
-      ],
-      "impact_long_terme": null,
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": 0.032,
-        "max": 0.048
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": []
+      ]
     },
     {
       "id": "hausse-tva-1pt",
@@ -476,19 +442,7 @@
       "questions": [
         "Impact sur pouvoir d'achat des ménages modestes ?",
         "Faut-il exclure certains produits du taux normal ?"
-      ],
-      "impact_long_terme": null,
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": -0.101,
-        "max": -0.168
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": []
+      ]
     },
     {
       "id": "plafonnement-niches-ir",
@@ -511,19 +465,7 @@
       "questions": [
         "Quelles niches conserver pour des raisons d'intérêt général ?",
         "Impact sur l'immobilier locatif intermédiaire ?"
-      ],
-      "impact_long_terme": null,
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": -0.101,
-        "max": -0.162
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": []
+      ]
     },
     {
       "id": "suppression-cir-grandes-entreprises",
@@ -546,19 +488,7 @@
       "questions": [
         "À quel seuil de R&D le CIR perd-il en efficacité marginale ?",
         "Impact sur l'attractivité de la France pour les sièges R&D ?"
-      ],
-      "impact_long_terme": null,
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": -0.04,
-        "max": -0.081
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": []
+      ]
     },
     {
       "id": "reforme-retraites-recul-age",
@@ -591,19 +521,7 @@
       "questions": [
         "Quel taux de maintien en emploi réaliste pour les 64 ans ?",
         "Comment traiter les carrières longues et métiers pénibles ?"
-      ],
-      "impact_long_terme": null,
-      "impact_croissance_ct": {
-        "horizon": "1-2 ans",
-        "min": 0.271,
-        "max": 0.387
-      },
-      "impact_croissance_lt": {
-        "horizon": "5-10 ans",
-        "min": null,
-        "max": null
-      },
-      "conditions_necessaires": []
+      ]
     }
   ],
   "multiplicateurs": {

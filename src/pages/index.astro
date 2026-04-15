@@ -1,7 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
-import Simulateur from '../components/Simulateur';
-import budgetData from '../data/budget_2025.json';
+import SimulateurWrapper from '../components/SimulateurWrapper';
+
+// Liste des budgets disponibles — ajouter un fichier JSON dans /public/data/
+// et l'enregistrer ici pour qu'il apparaisse dans le sélecteur
+const budgetList = [
+  { id: 'plf_2025',  label: 'PLF 2025',     file: '/budgetscope/data/budget_2025.json'      },
+  { id: 'exec_2025', label: 'Exécuté 2025', file: '/budgetscope/data/budget_2025_exec.json' },
+  { id: 'plf_2026',  label: 'PLF 2026',     file: '/budgetscope/data/budget_2026_plf.json'  },
+];
 ---
 
 <Base title="Simulateur" description="Simulateur interactif des finances publiques françaises 2025">
@@ -11,10 +18,11 @@ import budgetData from '../data/budget_2025.json';
       <strong class="hero-title">Équilibrez le budget de la France</strong>
       <span class="hero-sep">—</span>
       Cochez les propositions pour voir leur impact sur le déficit, la dette et la croissance. Cliquez sur les nœuds et les flux pour voir le détail.
+      <a href="/budgetscope/sources" class="hero-sources-link">Sources & transparence →</a>
     </p>
   </div>
 
-  <Simulateur data={budgetData} client:load />
+  <SimulateurWrapper budgetList={budgetList} client:load />
 
 </Base>
 
@@ -41,4 +49,13 @@ import budgetData from '../data/budget_2025.json';
   .hero-sep {
     color: var(--text-muted);
   }
+  .hero-sources-link {
+    font-size: 0.72rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .hero-sources-link:hover { opacity: 1; text-decoration: underline; }
 </style>

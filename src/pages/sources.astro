@@ -1,0 +1,599 @@
+---
+import Base from '../layouts/Base.astro';
+import budget2025    from '../data/budget_2025.json';
+import budget2025ex  from '../data/budget_2025_exec.json';
+import budget2026    from '../data/budget_2026_plf.json';
+import PosteTable   from '../components/PosteTable.astro';
+
+// Typage explicite pour éviter les casts inline dans le template (incompatibles esbuild)
+interface SourcesOff { [key: string]: string }
+interface Indicateur { label?: string; valeur_reference_mds?: number; infobulle_courte?: string; note_methodologique?: string; source?: string }
+interface BudgetAny  { [key: string]: any }
+
+const budgets: BudgetAny[] = [budget2025 as BudgetAny, budget2025ex as BudgetAny, budget2026 as BudgetAny];
+
+// Pré-calculer les sources officielles pour chaque budget (évite le cast dans le template)
+const budgetSourcesOff: SourcesOff[][] = budgets.map(b =>
+  b.meta?.sources_officielles ? Object.entries(b.meta.sources_officielles as SourcesOff) : []
+);
+
+// Pré-calculer les indicateurs pour chaque budget
+const budgetIndicateurs: [string, Indicateur][][] = budgets.map(b =>
+  b.meta?.indicateurs ? Object.entries(b.meta.indicateurs as Record<string,Indicateur>) : []
+);
+---
+
+<Base title="Transparence des données" description="Sources, méthodes et commentaires pour chaque chiffre du simulateur BudgetScope">
+
+<nav class="top-nav">
+  <a href="/budgetscope/" class="nav-link">← Simulateur</a>
+  <span class="nav-sep">|</span>
+  <a href="/budgetscope/sources" class="nav-link nav-link--active">Transparence des données</a>
+</nav>
+
+<div class="page">
+
+  <header class="page-header">
+    <div class="page-header-left">
+      <div>
+        <h1 class="page-title">Transparence des données</h1>
+        <p class="page-subtitle">
+          Chaque chiffre du simulateur, sa source primaire, les alternatives de périmètre,
+          et son niveau de confiance. Dernière mise à jour : mars 2026.
+        </p>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="conf conf--haute">●&nbsp;Confirmé</span>
+      <span class="conf conf--moyenne">●&nbsp;Estimé</span>
+      <span class="conf conf--faible">●&nbsp;À vérifier</span>
+    </div>
+  </header>
+
+  {budgets.map((budget: any) => (
+    <section class="budget-section">
+
+      <!-- ── En-tête budget ───────────────────────────────────────────── -->
+      <div class="section-header">
+        <div class="section-title-row">
+          <h2 class="section-title">{budget.meta.label_long ?? budget.meta.label}</h2>
+          <span class={`section-type section-type--${budget.meta.type}`}>
+            {budget.meta.type === 'execute' ? 'Exécuté' : 'Prévisionnel'}
+          </span>
+        </div>
+        {budget.meta.alerte && (
+          <p class={`section-alerte section-alerte--${budget.meta.alerte_type}`}>
+            {budget.meta.alerte}
+          </p>
+        )}
+      </div>
+
+      <!-- ── BLOC 1 : Métadonnées macro ───────────────────────────────── -->
+      <div class="bloc">
+        <h3 class="bloc-title">
+          <span class="bloc-icon">◎</span> Métadonnées macro
+        </h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Champ JSON</th>
+              <th>Valeur retenue</th>
+              <th>Source</th>
+              <th>Confiance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>meta.annee</code></td>
+              <td class="val">{budget.meta.annee}</td>
+              <td>—</td>
+              <td><span class="conf conf--haute">●&nbsp;Confirmé</span></td>
+            </tr>
+            <tr>
+              <td><code>meta.pib</code></td>
+              <td class="val">{budget.meta.pib.toLocaleString('fr-FR')} Mrd€</td>
+              <td>
+                {budget.meta.type === 'execute'
+                  ? 'INSEE — Comptes nationaux APU 2025, mars 2026'
+                  : 'INSEE — Prévision PLF / consensus économistes'}
+              </td>
+              <td>
+                <span class={`conf conf--${budget.meta.type === 'execute' ? 'haute' : 'moyenne'}`}>
+                  {budget.meta.type === 'execute' ? '●\u00a0Confirmé' : '●\u00a0Estimé'}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td><code>meta.dette_initiale_pct</code></td>
+              <td class="val">{budget.meta.dette_initiale_pct} % du PIB</td>
+              <td>{budget.meta.dette_source ?? 'INSEE Maastricht'}</td>
+              <td><span class="conf conf--haute">●&nbsp;Confirmé</span></td>
+            </tr>
+            <tr>
+              <td><code>meta.dette_montant_mds</code></td>
+              <td class="val">{budget.meta.dette_montant_mds?.toLocaleString('fr-FR')} Mrd€</td>
+              <td>INSEE — Informations Rapides n°78, mars 2026</td>
+              <td><span class="conf conf--haute">●&nbsp;Confirmé</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Sources officielles -->
+        {budgetSourcesOff[budgets.indexOf(budget)].length > 0 && (
+          <div class="sources-links">
+            <span class="sources-label">Sources officielles :</span>
+            {budgetSourcesOff[budgets.indexOf(budget)].map(([k, url]) => (
+              <a href={url} target="_blank" rel="noopener" class="source-link">{k.toUpperCase()}</a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- ── BLOC 2 : Indicateurs de référence ────────────────────────── -->
+      {budgetIndicateurs[budgets.indexOf(budget)].length > 0 && (
+        <div class="bloc">
+          <h3 class="bloc-title">
+            <span class="bloc-icon">◉</span> Indicateurs de référence (panneaux explicatifs)
+          </h3>
+          <div class="indicateurs-grid">
+            {budgetIndicateurs[budgets.indexOf(budget)].map(([key, ind]) => (
+              <div class="indicateur-card">
+                <div class="indicateur-header">
+                  <span class="indicateur-key"><code>{`meta.indicateurs.${key}`}</code></span>
+                  {ind.valeur_reference_mds !== undefined && (
+                    <span class={`indicateur-val ${ind.valeur_reference_mds < 0 ? 'val-neg' : 'val-pos'}`}>
+                      {ind.valeur_reference_mds > 0 ? '+' : ''}{ind.valeur_reference_mds} Mrd€
+                    </span>
+                  )}
+                </div>
+                <p class="indicateur-label">{ind.label ?? key}</p>
+                {ind.infobulle_courte && (
+                  <p class="indicateur-desc">{ind.infobulle_courte}</p>
+                )}
+                {ind.note_methodologique && (
+                  <details class="note-details">
+                    <summary>Note méthodologique</summary>
+                    <p class="note-text">{ind.note_methodologique}</p>
+                  </details>
+                )}
+                {ind.source && (
+                  <p class="indicateur-source">Source : {ind.source}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- ── BLOC 3 : Recettes PLF ────────────────────────────────────── -->
+      <div class="bloc">
+        <h3 class="bloc-title">
+          <span class="bloc-icon bloc-icon--blue">▶</span> Recettes — Budget général de l'État (BGÉ)
+        </h3>
+        <PosteTable postes={budget.recettes_plf} prefix="recettes_plf" />
+
+        <!-- Consolidation TVA -->
+        <div class="consolidation-box">
+          <p class="consol-title">Split TVA (flux depuis le nœud TVA brute)</p>
+          <div class="consol-grid">
+            <div class="consol-item">
+              <span class="consol-k">→ Budget État</span>
+              <span class="consol-v">{budget.consolidation.tva_vers_etat} Mrd€</span>
+              <span class="consol-taux">({((budget.consolidation.tva_vers_etat / 216)*100).toFixed(1)}%)</span>
+            </div>
+            <div class="consol-item">
+              <span class="consol-k">→ Sécurité sociale</span>
+              <span class="consol-v">{budget.consolidation.tva_vers_secu} Mrd€</span>
+              <span class="consol-taux">({((budget.consolidation.tva_vers_secu / 216)*100).toFixed(1)}%)</span>
+            </div>
+            <div class="consol-item">
+              <span class="consol-k">→ Collectivités</span>
+              <span class="consol-v">{budget.consolidation.tva_vers_collectivites} Mrd€</span>
+              <span class="consol-taux">({((budget.consolidation.tva_vers_collectivites / 216)*100).toFixed(1)}%)</span>
+            </div>
+          </div>
+          <p class="consol-note">{budget.consolidation.infobulle_compensation}</p>
+        </div>
+      </div>
+
+      <!-- ── BLOC 4 : Recettes PLFSS ──────────────────────────────────── -->
+      <div class="bloc">
+        <h3 class="bloc-title">
+          <span class="bloc-icon bloc-icon--teal">▶</span> Recettes — Sécurité sociale (PLFSS)
+        </h3>
+        <PosteTable postes={budget.recettes_plfss} prefix="recettes_plfss" />
+      </div>
+
+      <!-- ── BLOC 5 : Dépenses PLF ────────────────────────────────────── -->
+      <div class="bloc">
+        <h3 class="bloc-title">
+          <span class="bloc-icon bloc-icon--purple">▶</span> Dépenses — Budget général de l'État (BGÉ)
+        </h3>
+        <PosteTable postes={budget.depenses_plf} prefix="depenses_plf" isDepense={true} />
+        <div class="total-row">
+          <span>Total dépenses PLF</span>
+          <span class="total-val">
+            {budget.depenses_plf.reduce((s: number, p: any) => s + p.valeur, 0).toLocaleString('fr-FR')} Mrd€
+          </span>
+        </div>
+      </div>
+
+      <!-- ── BLOC 6 : Dépenses PLFSS ──────────────────────────────────── -->
+      <div class="bloc">
+        <h3 class="bloc-title">
+          <span class="bloc-icon bloc-icon--violet">▶</span> Dépenses — Sécurité sociale (PLFSS)
+        </h3>
+        <PosteTable postes={budget.depenses_plfss} prefix="depenses_plfss" isDepense={true} />
+        <div class="total-row">
+          <span>Total dépenses PLFSS</span>
+          <span class="total-val">
+            {budget.depenses_plfss.reduce((s: number, p: any) => s + p.valeur, 0).toLocaleString('fr-FR')} Mrd€
+          </span>
+        </div>
+      </div>
+
+      <!-- ── BLOC 7 : Mesures ─────────────────────────────────────────── -->
+      {budget.mesures?.length > 0 && (
+        <div class="bloc">
+          <h3 class="bloc-title">
+            <span class="bloc-icon">◈</span> Mesures modélisées
+          </h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID JSON</th>
+                <th>Label</th>
+                <th>Type</th>
+                <th>Budget</th>
+                <th>Poste</th>
+                <th>Impact min</th>
+                <th>Impact max</th>
+                <th>Statut</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {budget.mesures.map((m: any) => (
+                <tr>
+                  <td><code>{m.id}</code></td>
+                  <td>{m.label}</td>
+                  <td>
+                    <span class={`type-badge type-badge--${m.type}`}>
+                      {m.type}
+                    </span>
+                  </td>
+                  <td><span class="budget-badge">{m.budget?.toUpperCase()}</span></td>
+                  <td><code>{m.poste}</code></td>
+                  <td class="val">{m.impact_min} Mrd€</td>
+                  <td class="val">{m.impact_max} Mrd€</td>
+                  <td>
+                    <span class={`statut-badge statut-badge--${m.statut?.replace(/_/g,'-')}`}>
+                      {m.statut}
+                    </span>
+                  </td>
+                  <td>
+                    {m.source_url
+                      ? <a href={m.source_url} target="_blank" rel="noopener" class="source-link">{m.source_label}</a>
+                      : m.source_label}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+    </section>
+  ))}
+
+</div>
+</Base>
+
+
+
+<style>
+  /* ── Variables héritées du thème global ────────────────────────── */
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 4rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* ── Header ────────────────────────────────────────────────────── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .page-header-left { display: flex; flex-direction: column; gap: 0.5rem; }
+  .back-link {
+    font-size: 0.72rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+  .back-link:hover { text-decoration: underline; }
+  .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+    max-width: 620px;
+    line-height: 1.5;
+    font-family: inherit;
+  }
+
+  /* ── Légende confiance ─────────────────────────────────────────── */
+  .legend { display: flex; gap: 1rem; align-items: center; flex-shrink: 0; }
+  .conf { font-size: 0.68rem; font-weight: 500; white-space: nowrap; }
+  .conf--haute   { color: #3fb950; }
+  .conf--moyenne { color: #d29922; }
+  .conf--faible  { color: #f85149; }
+
+  /* ── Section budget ─────────────────────────────────────────────── */
+  .budget-section {
+    margin-bottom: 3rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .section-header {
+    background: var(--bg-secondary);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .section-title-row { display: flex; align-items: center; gap: 0.75rem; }
+  .section-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .section-type {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .section-type--previsionnel { background: rgba(210,153,34,0.15); color: #d29922; border: 1px solid rgba(210,153,34,0.3); }
+  .section-type--execute      { background: rgba(63,185,80,0.12);  color: #3fb950; border: 1px solid rgba(63,185,80,0.25); }
+  .section-alerte {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+    font-family: inherit;
+  }
+  .section-alerte--warning { color: #d29922; }
+  .section-alerte--info    { color: #58a6ff; }
+  .section-alerte--success { color: #3fb950; }
+
+  /* ── Blocs ──────────────────────────────────────────────────────── */
+  .bloc {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .bloc:last-child { border-bottom: none; }
+  .bloc-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .bloc-icon        { color: var(--text-muted); }
+  .bloc-icon--blue  { color: #58a6ff; }
+  .bloc-icon--teal  { color: #1D9E75; }
+  .bloc-icon--purple{ color: #9a6bdb; }
+  .bloc-icon--violet{ color: #a371f7; }
+
+  /* ── Table données ──────────────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.15);
+  }
+  .data-table td {
+    padding: 0.45rem 0.6rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .data-table code {
+    font-size: 0.68rem;
+    color: #58a6ff;
+    background: rgba(56,139,253,0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .val { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .val-neg { color: #f85149; }
+  .val-pos { color: #3fb950; }
+
+  /* ── Infobulle dans table ──────────────────────────────────────── */
+  .infobulle-cell {
+    max-width: 320px;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  /* ── Sources links ──────────────────────────────────────────────── */
+  .sources-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin-top: 0.6rem;
+    font-size: 0.68rem;
+  }
+  .sources-label { color: var(--text-muted); }
+  .source-link {
+    color: #58a6ff;
+    text-decoration: none;
+    padding: 1px 6px;
+    background: rgba(56,139,253,0.1);
+    border-radius: 4px;
+    border: 1px solid rgba(56,139,253,0.2);
+    font-size: 0.65rem;
+  }
+  .source-link:hover { background: rgba(56,139,253,0.2); }
+
+  /* ── Consolidation TVA ─────────────────────────────────────────── */
+  .consolidation-box {
+    margin-top: 0.75rem;
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.75rem;
+  }
+  .consol-title { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); margin: 0 0 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .consol-grid  { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .consol-item  { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
+  .consol-k     { color: var(--text-secondary); }
+  .consol-v     { font-weight: 600; color: var(--text-primary); }
+  .consol-taux  { color: var(--text-muted); font-size: 0.65rem; }
+  .consol-note  { font-size: 0.68rem; color: var(--text-muted); margin: 0; line-height: 1.4; font-style: italic; }
+
+  /* ── Total ─────────────────────────────────────────────────────── */
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.6rem;
+    background: rgba(0,0,0,0.15);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .total-val { color: var(--text-primary); }
+
+  /* ── Indicateurs grid ──────────────────────────────────────────── */
+  .indicateurs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 0.75rem;
+  }
+  .indicateur-card {
+    background: rgba(0,0,0,0.15);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .indicateur-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .indicateur-key  { flex: 1; }
+  .indicateur-val  { font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+  .indicateur-label { font-size: 0.72rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+  .indicateur-desc  { font-size: 0.68rem; color: var(--text-muted); margin: 0; line-height: 1.4; }
+  .indicateur-source{ font-size: 0.63rem; color: var(--text-muted); margin: 0; font-style: italic; margin-top: auto; padding-top: 0.25rem; border-top: 1px solid var(--border-subtle); }
+  .note-details { margin-top: 0.25rem; }
+  .note-details summary {
+    font-size: 0.65rem;
+    color: #58a6ff;
+    cursor: pointer;
+    user-select: none;
+    letter-spacing: 0.03em;
+  }
+  .note-text {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin: 0.4rem 0 0;
+    line-height: 1.55;
+    white-space: pre-line;
+    background: rgba(56,139,253,0.05);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 2px solid rgba(56,139,253,0.3);
+  }
+
+  /* ── Badges ────────────────────────────────────────────────────── */
+  .type-badge {
+    display: inline-block;
+    font-size: 0.63rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .type-badge--recette { background: rgba(63,185,80,0.12);  color: #3fb950; }
+  .type-badge--depense { background: rgba(248,81,73,0.12);  color: #f85149; }
+  .budget-badge {
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .statut-badge {
+    font-size: 0.6rem;
+    font-weight: 500;
+    padding: 1px 5px;
+    border-radius: 9999px;
+  }
+  .statut-badge--observe                { background: #1a3a2a; color: #3fb950; }
+  .statut-badge--hypothese-partielle    { background: #2a2a1a; color: #d29922; }
+  .statut-badge--hypothese-non-verifiee { background: #2a2a1a; color: #d29922; }
+  .statut-badge--incertain              { background: #2a1a1a; color: #f85149; }
+
+  /* ── Nav ──────────────────────────────────────────────────────────── */
+  .top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1.5rem;
+    background: rgba(13,17,23,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    margin: -1rem -1.5rem 1rem;
+  }
+  .nav-link { color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent-blue); }
+  .nav-link--active { color: var(--text-primary); font-weight: 600; }
+  .nav-sep { color: var(--border); }
+
+  @media (max-width: 768px) {
+    .page { padding: 0.75rem 0.75rem 3rem; }
+    .data-table { font-size: 0.65rem; }
+    .indicateurs-grid { grid-template-columns: 1fr; }
+  }
+</style>

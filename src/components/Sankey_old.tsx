@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { sankey as d3sankey, sankeyLinkHorizontal, sankeyLeft } from 'd3-sankey';
+import { sankey as d3sankey, sankeyLinkHorizontal } from 'd3-sankey';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 export interface SankeyPoste {
@@ -15,16 +15,8 @@ interface MesureActive {
 interface SankeyProps {
   recettes_plf: SankeyPoste[]; recettes_plfss: SankeyPoste[];
   depenses_plf: SankeyPoste[]; depenses_plfss: SankeyPoste[];
-  // ── CORRECTION : compensationSecu n'est plus utilisé pour plfNet ──────
-  // Il sert uniquement à colorer le flux TVA→Sécu dans le Sankey
-  compensationSecu: number;
-  emprunt: number;
+  compensationSecu: number; emprunt: number;
   emprunt_infobulle: string; compensation_infobulle: string;
-  // Taux de split TVA (depuis budget_2025.json) — optionnels, fallback sur valeurs réelles PLF 2025
-  taux_tva_etat?: number;        // défaut: 0.454 (98/216)
-  taux_tva_secu?: number;        // défaut: 0.171 (37/216)
-  taux_tva_collectivites?: number; // défaut: 0.347 (75/216)
-  taux_tva_audiovisuel?: number;   // défaut: 0.028 (6/216)
   deltas: Record<string, { min: number; max: number }>;
   mesuresActives: MesureActive[];
 }
@@ -39,9 +31,7 @@ const C = {
   rec_plfss: '#0EA5E9',
   dep_plf:   '#7C3AED',
   dep_plfss: '#A855F7',
-  oat:       '#EA580C',   // emprunt OAT — orange (passif, pas une recette)
-  tva_coll:  '#0D9488',   // TVA→collectivités — teal
-  tva_audio: '#6366F1',   // TVA→audiovisuel — indigo
+  oat:       '#EA580C',
   surplus:   '#059669',
   deficit:   '#EA580C',
   text:      '#CBD5E1',
@@ -76,87 +66,53 @@ export default function Sankey(props: SankeyProps) {
   }, []);
 
   const isPortrait = width < 600;
-  const H  = Math.min(620, Math.round(isPortrait ? width * 1.5 : width * 0.55));
-  const ML = isPortrait ? 100 : 170;
-  const MR = isPortrait ? 100 : 170;
-  const MT = 32;
+  const H  = Math.min(580, Math.round(isPortrait ? width * 1.4 : width * 0.50));
+  const ML = isPortrait ? 100 : 160;   // marge gauche labels
+  const MR = isPortrait ? 100 : 160;   // marge droite labels
+  const MT = 32;                        // marge top (en-têtes)
   const MB = 12;
 
   useEffect(() => {
     if (!svgRef.current || width === 0) return;
-    const {
-      recettes_plf, recettes_plfss, depenses_plf, depenses_plfss,
-      emprunt, deltas, mesuresActives,
-      taux_tva_etat          = 0.454,
-      taux_tva_secu          = 0.171,
-      taux_tva_collectivites = 0.347,
-      taux_tva_audiovisuel   = 0.028,
-    } = props;
-
+    const { recettes_plf, recettes_plfss, depenses_plf, depenses_plfss,
+            compensationSecu, emprunt, deltas, mesuresActives } = props;
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
     svg.attr('viewBox', `0 0 ${width} ${H}`).attr('width', width).attr('height', H);
 
-    // ── Séparer OAT des recettes fiscales PLF ────────────────────────────
-    const oatPoste        = recettes_plf.find(p => p.id === 'oat');
-    const recFiscPlf      = recettes_plf.filter(p => p.id !== 'oat');
-    const tvaPoste        = recFiscPlf.find(p => p.id === 'tva');
-    const autresPlf       = recFiscPlf.filter(p => p.id !== 'tva');
-    const empruntVal      = oatPoste?.valeurEffective ?? emprunt;
-
-    // ── CORRECTION : calcul correct du Budget État ────────────────────────
-    // TVA brute → split en 4 flux directs depuis nœud TVA
-    // Budget État reçoit uniquement la part TVA→État (taux_tva_etat)
-    const tvaVal          = tvaPoste?.valeurEffective ?? 216;
-    const tvaVersEtat     = Math.round(tvaVal * taux_tva_etat);
-    const tvaVersSecu     = Math.round(tvaVal * taux_tva_secu);
-    const tvaVersColl     = Math.round(tvaVal * taux_tva_collectivites);
-    const tvaVersAudio    = Math.round(tvaVal * taux_tva_audiovisuel);
-
-    const recHorsTvaOat   = autresPlf.reduce((s, p) => s + p.valeurEffective, 0);
-    const totalPlfssVal   = recettes_plfss.reduce((s, p) => s + p.valeurEffective, 0);
-
-    const oatEtat         = Math.round(empruntVal * 0.72);
-    const oatSecu         = empruntVal - oatEtat;
-
-    // Budget État = recettes hors TVA hors OAT + TVA part État + OAT part État
-    const budgetEtat      = recHorsTvaOat + tvaVersEtat + oatEtat;
-    // Budget Sécu = cotisations + CSG + autres + TVA part Sécu + OAT part Sécu
-    const budgetSecu      = totalPlfssVal + tvaVersSecu + oatSecu;
-
-    const totalDepPlf     = depenses_plf.reduce((s, p) => s + p.valeurEffective, 0);
-    const totalDepPlfss   = depenses_plfss.reduce((s, p) => s + p.valeurEffective, 0);
-    const soldeEtat       = budgetEtat - totalDepPlf;
-    const soldeSecu       = budgetSecu - totalDepPlfss;
+    // ── Totaux ───────────────────────────────────────────────────────────
+    // Séparer l'OAT des recettes fiscales
+    const oatPoste      = recettes_plf.find(p => p.id === 'oat');
+    const recettesFiscPlf = recettes_plf.filter(p => p.id !== 'oat');
+    const empruntVal    = oatPoste?.valeurEffective ?? emprunt;
+    const totalPlfBrut  = recettesFiscPlf.reduce((s, p) => s + p.valeurEffective, 0);
+    const totalPlfssVal = recettes_plfss.reduce((s, p) => s + p.valeurEffective, 0);
+    const plfNet        = totalPlfBrut - compensationSecu;
+    const plfssNet      = totalPlfssVal + compensationSecu;
+    const oatEtat       = Math.round(empruntVal * 0.72);
+    const oatSecu       = empruntVal - oatEtat;
+    const budgetEtat    = plfNet + oatEtat;
+    const budgetSecu    = plfssNet + oatSecu;
+    const totalDepPlf   = depenses_plf.reduce((s, p) => s + p.valeurEffective, 0);
+    const totalDepPlfss = depenses_plfss.reduce((s, p) => s + p.valeurEffective, 0);
+    const soldeEtat     = budgetEtat - totalDepPlf;
+    const soldeSecu     = budgetSecu - totalDepPlfss;
+    const tvaVal        = recettesFiscPlf.find(p => p.id === 'tva')?.valeurEffective ?? 216;
+    const ratioComp     = compensationSecu / Math.max(tvaVal, 1);
 
     // ── Nœuds ────────────────────────────────────────────────────────────
     type ND = {
       key: string; label: string; val: number; color: string; col: number;
       infobulle?: string; source?: string; posteId?: string;
+      fixedY?: number; // pour fixer l'ordre vertical col centrale
     };
 
-    // Col 0 — recettes (PLF fiscales hors TVA, puis TVA, puis OAT, puis PLFSS)
     const nodesA: ND[] = [
-      // Recettes PLF hors OAT hors TVA
-      ...autresPlf.map(p => ({
+      ...recettesFiscPlf.map(p => ({
         key: `r_${p.id}`, label: p.label, val: p.valeurEffective,
         color: C.rec_plf, col: 0,
         infobulle: p.infobulle, source: p.source, posteId: p.id,
       })),
-      // TVA (nœud source du split)
-      ...(tvaPoste ? [{
-        key: 'r_tva', label: tvaPoste.label, val: tvaPoste.valeurEffective,
-        color: C.rec_plf, col: 0,
-        infobulle: tvaPoste.infobulle, source: tvaPoste.source, posteId: 'tva',
-      }] : []),
-      // OAT (emprunt — orange)
-      ...(oatPoste ? [{
-        key: 'r_oat', label: oatPoste.label, val: oatPoste.valeurEffective,
-        color: C.oat, col: 0,
-        infobulle: oatPoste.infobulle ?? props.emprunt_infobulle,
-        source: oatPoste.source ?? 'AFT 2025', posteId: 'oat',
-      }] : []),
-      // Recettes PLFSS
       ...recettes_plfss.map(p => ({
         key: `r_${p.id}`, label: p.label, val: p.valeurEffective,
         color: C.rec_plfss, col: 0,
@@ -164,51 +120,55 @@ export default function Sankey(props: SankeyProps) {
       })),
     ];
 
-    // Col 1 — Budget État, Collectivités TVA, Budget Sécu
-    // c_coll : même col:1 que c_etat → D3 lui applique le même padding naturellement
+    // Colonne centrale : OAT en haut, Budget État, Budget Sécu — ordre fixe
     const nodesB: ND[] = [
-      { key: 'c_etat', label: 'Budget État',         val: budgetEtat,  color: C.rec_plf,   col: 1 },
-      { key: 'c_coll', label: 'Collectivités (TVA)', val: tvaVersColl, color: C.tva_coll,  col: 1,
-        infobulle: 'Fraction de TVA directement affectée aux collectivités territoriales (75 Mrd). Compensation de la suppression de la CVAE, dotation globale de fonctionnement des régions. Cette TVA ne transite pas par le Budget de l\'État : elle est affectée à la source par la loi de finances.' },
-      { key: 'c_secu', label: 'Budget Sécu',         val: budgetSecu,  color: C.rec_plfss, col: 1 },
+      { key: 'c_etat', label: 'Budget État',   val: budgetEtat, color: C.rec_plf,   col: 1 },
+      { key: 'c_secu', label: 'Budget Sécu',   val: budgetSecu, color: C.rec_plfss, col: 1 },
+      { key: 'c_oat',  label: 'Emprunt (OAT)', val: empruntVal, color: C.oat,       col: 1, infobulle: oatPoste?.infobulle ?? props.emprunt_infobulle, source: oatPoste?.source ?? 'AFT 2025' },
     ];
 
-    // Col 2 — dépenses
     const nodesD: ND[] = [
       ...depenses_plf.map(p => ({
         key: `d_${p.id}`, label: p.label, val: p.valeurEffective,
         color: C.dep_plf, col: 2,
         infobulle: p.infobulle, source: p.source, posteId: p.id,
       })),
+      ...depenses_plfss.map(p => ({
+        key: `d_${p.id}`, label: p.label, val: p.valeurEffective,
+        color: C.dep_plfss, col: 2,
+        infobulle: p.infobulle, source: p.source, posteId: p.id,
+      })),
     ];
+    // Déficit État : toujours présent, positionné entre dépenses PLF et PLFSS
+    if (Math.abs(soldeEtat) > 0.5) nodesD.splice(depenses_plf.length, 0, {
+      key: 'd_solde_etat', col: 2, val: Math.abs(soldeEtat),
+      label: soldeEtat >= 0 ? 'Surplus État' : 'Déficit État',
+      color: soldeEtat >= 0 ? C.surplus : C.deficit,
+      infobulle: `Déficit de ${Math.abs(soldeEtat).toFixed(0)} mds du budget de l'État — différence entre recettes fiscales consolidées et dépenses PLF. La France est en déficit structurel depuis 1974.`,
+    });
+    if (Math.abs(soldeSecu) > 0.5) nodesD.push({
+      key: 'd_solde_secu', col: 2, val: Math.abs(soldeSecu),
+      label: soldeSecu >= 0 ? 'Surplus Sécu' : 'Déficit Sécu',
+      color: soldeSecu >= 0 ? C.surplus : C.deficit,
+      infobulle: `${soldeSecu >= 0 ? 'Excédent' : 'Déficit'} de ${Math.abs(soldeSecu).toFixed(0)} mds de la Sécurité sociale.`,
+    });
 
-    // TVA→Collectivités : nœud en col 1 (c_coll), pas en col 2
-    // TVA→Audiovisuel : intégré dans tvaVersEtat (taux_tva_audiovisuel = 0), pas de nœud séparé
-
-    // Déficit État : affiché dans les indicateurs bas, pas dans le Sankey
-
-    // Dépenses PLFSS
-    nodesD.push(...depenses_plfss.map(p => ({
-      key: `d_${p.id}`, label: p.label, val: p.valeurEffective,
-      color: C.dep_plfss, col: 2,
-      infobulle: p.infobulle, source: p.source, posteId: p.id,
-    })));
-
-    // Déficit Sécu : affiché dans les indicateurs bas, pas dans le Sankey
-
-    // ── Ordre de tri ─────────────────────────────────────────────────────
+    // Ordre explicite pour chaque colonne — utilisé par nodeSort
     const sortOrder: Record<string, number> = {};
-    // TVA après les autres recettes PLF (sous "Autres recettes" en col0)
-    autresPlf.forEach((p, i) => { sortOrder[`r_${p.id}`] = i; });
-    sortOrder['r_tva'] = autresPlf.length;
-    sortOrder['r_oat']  = autresPlf.length + 1;
-    recettes_plfss.forEach((p, i) => { sortOrder[`r_${p.id}`] = autresPlf.length + 2 + i; });
+    // Col 0 : recettes PLF dans l'ordre du JSON, puis OAT, puis PLFSS
+    recettes_plf.forEach((p, i)   => { sortOrder[`r_${p.id}`] = i; });
+    sortOrder['c_oat'] = recettesFiscPlf.length;
+    recettes_plfss.forEach((p, i) => { sortOrder[`r_${p.id}`] = recettes_plf.length + 1 + i; });
+    // Col 1 : Budget État puis Budget Sécu
     sortOrder['c_etat'] = 0;
-    sortOrder['c_coll'] = 1;  // Collectivités TVA entre Budget État et Budget Sécu
-    sortOrder['c_secu'] = 2;
+    sortOrder['c_secu'] = 1;
+    // Col 2 : dépenses PLF puis PLFSS puis soldes
     depenses_plf.forEach((p, i)   => { sortOrder[`d_${p.id}`] = i; });
     depenses_plfss.forEach((p, i) => { sortOrder[`d_${p.id}`] = depenses_plf.length + i; });
-
+    // Déficit État entre les dépenses PLF et PLFSS
+    sortOrder['d_solde_etat'] = depenses_plf.length;
+    depenses_plfss.forEach((p, i) => { sortOrder[`d_${p.id}`] = depenses_plf.length + 1 + i; });
+    sortOrder['d_solde_secu'] = depenses_plf.length + 1 + depenses_plfss.length;
 
     const allNodes = [...nodesA, ...nodesB, ...nodesD];
     const idx = new Map(allNodes.map((n, i) => [n.key, i]));
@@ -217,78 +177,67 @@ export default function Sankey(props: SankeyProps) {
     type LD = { source: string; target: string; value: number; color: string };
     const raw: LD[] = [];
 
-    // Recettes PLF hors TVA hors OAT → Budget État
-    autresPlf.forEach(p => {
-      raw.push({ source: `r_${p.id}`, target: 'c_etat', value: p.valeurEffective, color: C.rec_plf });
+    // TVA en premier (fiscal + compensation), puis les autres recettes fiscales PLF (sans OAT)
+    const tvaPoste = recettesFiscPlf.find(p => p.id === 'tva');
+    const autresPlf = recettesFiscPlf.filter(p => p.id !== 'tva');
+    const orderedPlf = tvaPoste ? [tvaPoste, ...autresPlf] : recettesFiscPlf;
+
+    orderedPlf.forEach(p => {
+      const comp = p.id === 'tva' ? Math.round(p.valeurEffective * ratioComp) : 0;
+      const fisc = p.valeurEffective - comp;
+      if (fisc > 0.5) raw.push({ source: `r_${p.id}`, target: 'c_etat', value: fisc, color: C.rec_plf });
+      if (comp > 0.5) raw.push({ source: `r_${p.id}`, target: 'c_secu', value: comp, color: C.rec_plf });
     });
-
-    // TVA après les autres → nœud TVA sous les autres recettes
-    if (tvaPoste) {
-      if (tvaVersEtat > 0.5) raw.push({ source: 'r_tva', target: 'c_etat', value: tvaVersEtat, color: C.rec_plf  });
-      if (tvaVersSecu > 0.5) raw.push({ source: 'r_tva', target: 'c_secu', value: tvaVersSecu, color: C.rec_plf  });
-      if (tvaVersColl > 0.5) raw.push({ source: 'r_tva', target: 'c_coll', value: tvaVersColl, color: C.tva_coll });
-    }
-
-    // OAT → État (72%) + Sécu (28%)
-    raw.push({ source: 'r_oat', target: 'c_etat', value: oatEtat, color: C.oat });
-    raw.push({ source: 'r_oat', target: 'c_secu', value: oatSecu, color: C.oat });
-
-    // Recettes PLFSS → Budget Sécu
-    recettes_plfss.forEach(p => {
-      raw.push({ source: `r_${p.id}`, target: 'c_secu', value: p.valeurEffective, color: C.rec_plfss });
-    });
-
-    // Budget État → dépenses PLF
-    depenses_plf.forEach(p => {
-      raw.push({ source: 'c_etat', target: `d_${p.id}`, value: p.valeurEffective, color: C.dep_plf });
-    });
-
-
-    // Budget Sécu → dépenses PLFSS
-    depenses_plfss.forEach(p => {
-      raw.push({ source: 'c_secu', target: `d_${p.id}`, value: p.valeurEffective, color: C.dep_plfss });
-    });
-
+    recettes_plfss.forEach(p => raw.push({ source: `r_${p.id}`, target: 'c_secu', value: p.valeurEffective, color: C.rec_plfss }));
+    raw.push({ source: 'c_oat', target: 'c_etat', value: oatEtat, color: C.oat });
+    raw.push({ source: 'c_oat', target: 'c_secu', value: oatSecu, color: C.oat });
+    depenses_plf.forEach(p =>  raw.push({ source: 'c_etat', target: `d_${p.id}`, value: p.valeurEffective, color: C.dep_plf }));
+    depenses_plfss.forEach(p => raw.push({ source: 'c_secu', target: `d_${p.id}`, value: p.valeurEffective, color: C.dep_plfss }));
+    if (Math.abs(soldeEtat) > 0.5) raw.push({ source: 'c_etat', target: 'd_solde_etat', value: Math.abs(soldeEtat), color: soldeEtat >= 0 ? C.surplus : C.deficit });
+    if (Math.abs(soldeSecu) > 0.5) raw.push({ source: 'c_secu', target: 'd_solde_secu', value: Math.abs(soldeSecu), color: soldeSecu >= 0 ? C.surplus : C.deficit });
 
     const sankeyLinks = raw
       .filter(l => idx.has(l.source) && idx.has(l.target) && l.value > 0.1)
       .map(l => ({ source: idx.get(l.source)!, target: idx.get(l.target)!, value: l.value, color: l.color }));
 
     // ── Layout Sankey ────────────────────────────────────────────────────
-    // nodeAlign custom : force c_coll à depth 1 (même colonne que c_etat)
-    // sankeyLeft place les nœuds à leur depth calculé par le graphe
-    // Pour c_coll (sink sans liens sortants), on override la depth à 1
-    const customAlign = (node: any, n: number) => {
-      if ((node as ND).key === 'c_coll') return 1;
-      return sankeyLeft(node, n);
-    };
-
     const gen = d3sankey<ND, typeof sankeyLinks[0]>()
       .nodeId((_: any, i: number) => i)
-      .nodeAlign(customAlign)
-      .nodeSort((a: any, b: any) => (sortOrder[(a as ND).key] ?? 999) - (sortOrder[(b as ND).key] ?? 999))
+      .nodeSort((a: any, b: any) => {
+        const oa = sortOrder[(a as ND).key] ?? 999;
+        const ob = sortOrder[(b as ND).key] ?? 999;
+        return oa - ob;
+      })
       .nodeWidth(14)
-      .nodePadding(isPortrait ? 8 : 12)
+      .nodePadding(isPortrait ? 8 : 14)
+      // nodeSort null = D3 ne réordonne pas nos nœuds
       .extent([[ML, MT], [width - MR, H - MB]]);
 
     let graph: any;
     try { graph = gen({ nodes: allNodes.map(n => ({ ...n })), links: sankeyLinks }); }
     catch { return; }
 
-    // ── Padding minimum 25px sur les nœuds centraux (col 1) ─────────────
-    const MIN_CENTRE_H = 25;
-    graph.nodes.forEach((n: any) => {
-      if ((n as ND).col === 1) {
-        const h = (n.y1 ?? 0) - (n.y0 ?? 0);
-        if (h < MIN_CENTRE_H) {
-          const extra = (MIN_CENTRE_H - h) / 2;
-          n.y0 = (n.y0 ?? 0) - extra;
-          n.y1 = (n.y1 ?? 0) + extra;
-        }
-      }
-    });
-
-
+    // ── Forcer l'ordre des flux entrants sur Budget État ─────────────────
+    const etatNode = graph.nodes.find((n: any) => n.key === 'c_etat');
+    if (etatNode) {
+      const sourceOrder = ['r_tva', 'r_ir', 'r_is', 'r_ticpe', 'r_autres_plf', 'c_oat'];
+      const inLinks = graph.links.filter((l: any) => {
+        const t = typeof l.target === 'object' ? l.target : graph.nodes[l.target];
+        return t?.key === 'c_etat';
+      });
+      inLinks.sort((a: any, b: any) => {
+        const ka = (typeof a.source === 'object' ? a.source : graph.nodes[a.source])?.key ?? '';
+        const kb = (typeof b.source === 'object' ? b.source : graph.nodes[b.source])?.key ?? '';
+        return (sourceOrder.indexOf(ka) === -1 ? 99 : sourceOrder.indexOf(ka))
+             - (sourceOrder.indexOf(kb) === -1 ? 99 : sourceOrder.indexOf(kb));
+      });
+      let curY = etatNode.y0;
+      inLinks.forEach((l: any) => {
+        const lw = l.width ?? 1;
+        l.y1 = curY + lw / 2;
+        curY += lw;
+      });
+    }
 
     // ── Dégradés ────────────────────────────────────────────────────────
     const defs = svg.append('defs');
@@ -340,9 +289,9 @@ export default function Sankey(props: SankeyProps) {
       const col  = nd.col;
       const isLeft   = col === 0;
       const isRight  = col === 2;
-      const isCentre = col === 1;
+      const isCentre = col === 1 && nd.key !== 'c_oat';
 
-      // Rectangle
+      // ── Rectangle ───────────────────────────────────────────────────
       svg.append('rect')
         .attr('x', x0).attr('y', y0).attr('width', x1 - x0).attr('height', nh)
         .attr('fill', nd.color).attr('rx', 2).attr('opacity', 0.92)
@@ -358,62 +307,92 @@ export default function Sankey(props: SankeyProps) {
           });
         });
 
+      // ── Labels ──────────────────────────────────────────────────────
       const valStr = `${(nd.val ?? 0).toFixed(0)} mds`;
 
       if (isCentre) {
-        // Tous les nœuds centraux (Budget État, Collectivités TVA, Budget Sécu)
-        // ont le même format : 2 lignes centrées dans le nœud — blanc gras / gris clair
-        // L'espacement vertical s'adapte à la hauteur disponible
-        const lineOffset = Math.min(7, Math.max(4, nh * 0.25));
-        svg.append('text')
-          .attr('x', (x0 + x1) / 2).attr('y', yMid - lineOffset)
-          .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
-          .attr('fill', C.white).attr('font-size', FS).attr('font-weight', 700).attr('font-family', FF)
-          .text(nd.label.length > 18 ? nd.label.slice(0, 16) + '…' : nd.label);
-        svg.append('text')
-          .attr('x', (x0 + x1) / 2).attr('y', yMid + lineOffset)
-          .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
-          .attr('fill', C.white).attr('font-size', FSV).attr('font-family', FF)
-          .text(valStr);
+        // Nœuds centraux : texte DANS le nœud si assez grand, sinon à droite
+        if (nh >= 28) {
+          // Texte centré dans le nœud, gras, blanc
+          svg.append('text')
+            .attr('x', (x0 + x1) / 2).attr('y', yMid - 7)
+            .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+            .attr('fill', C.white).attr('font-size', FS).attr('font-weight', 700).attr('font-family', FF)
+            .text(nd.label);
+          svg.append('text')
+            .attr('x', (x0 + x1) / 2).attr('y', yMid + 7)
+            .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+            .attr('fill', C.white).attr('font-size', FSV).attr('font-family', FF)
+            .text(valStr);
+        } else {
+          // Nœud trop petit : label à gauche, aligné comme les autres colonnes
+          svg.append('text')
+            .attr('x', x0 - 6).attr('y', yMid - 6)
+            .attr('text-anchor', 'end').attr('dominant-baseline', 'central')
+            .attr('fill', C.text).attr('font-size', FS).attr('font-weight', 600).attr('font-family', FF)
+            .text(nd.label);
+          svg.append('text')
+            .attr('x', x0 - 6).attr('y', yMid + 6)
+            .attr('text-anchor', 'end').attr('dominant-baseline', 'central')
+            .attr('fill', C.muted).attr('font-size', FSV).attr('font-family', FF)
+            .text(valStr);
+        }
       } else {
-        const labelX = isLeft ? x0 - 8 : x1 + 8;
-        const anchor = isLeft ? 'end' : 'start';
+        // Colonnes gauche et droite : 2 lignes — label + valeur
+        const labelX = isLeft ? x0 - 8 : (nd.key === 'c_oat' ? x0 - 8 : x1 + 8);
+        const anchor = (isLeft || nd.key === 'c_oat') ? 'end' : 'start';
+
+        // Toujours 2 lignes : label en blanc bold, valeur en dessous en gris clair
+        // Si le nœud est trop petit (< 12px), on centre verticalement sur yMid
         const lineGap = 13;
         const ly1 = nh >= 12 ? yMid - lineGap / 2 : yMid - 5;
         const ly2 = nh >= 12 ? yMid + lineGap / 2 + 1 : yMid + 7;
+
         svg.append('text')
           .attr('x', labelX).attr('y', ly1)
           .attr('text-anchor', anchor).attr('dominant-baseline', 'central')
-          .attr('fill', '#F1F5F9')
+          .attr('fill', '#F1F5F9')           // blanc cassé — bon contraste sur fond sombre
           .attr('font-size', FS).attr('font-weight', 600).attr('font-family', FF)
-          .text(nd.label.length > 24 ? nd.label.slice(0, 22) + '…' : nd.label);
+          .text(nd.label);
         svg.append('text')
           .attr('x', labelX).attr('y', ly2)
           .attr('text-anchor', anchor).attr('dominant-baseline', 'central')
-          .attr('fill', '#94A3B8')
+          .attr('fill', '#94A3B8')           // gris clair — lisible sans concurrencer le label
           .attr('font-size', FSV).attr('font-weight', 400).attr('font-family', FF)
           .text(valStr);
       }
 
-      // Delta mesure active
+      // ── Delta mesure active ──────────────────────────────────────────
       const pid   = nd.posteId ?? nd.key.replace(/^[rdc]_/, '');
       const delta = deltas[pid];
       if (delta && !isCentre) {
-        const dv  = (delta.min + delta.max) / 2;
-        const dc  = dv >= 0 ? C.dp : C.dn;
-        const bx  = isLeft ? x1 + 2 : x0 - 2;
-        const ba  = isLeft ? 'start' : 'end';
+        const dv   = (delta.min + delta.max) / 2;
+        const dc   = dv >= 0 ? C.dp : C.dn;
+        const dTxt = `${dv >= 0 ? '▲ +' : '▼ '}${dv.toFixed(0)}`;
+        const refs  = mesuresActives.filter(m => m.poste === pid).map(m => m.label.split(' ')[0]).join(', ');
+        const bx    = isLeft ? x1 + 2 : x0 - 2;
+        const ba    = isLeft ? 'start' : 'end';
         svg.append('text')
           .attr('x', bx).attr('y', y0 + 9)
           .attr('text-anchor', ba).attr('fill', dc)
           .attr('font-size', isPortrait ? 8 : 10).attr('font-weight', 700).attr('font-family', FF)
-          .text(`${dv >= 0 ? '▲ +' : '▼ '}${dv.toFixed(0)}`);
+          .text(dTxt);
+        if (refs && nh > 18) {
+          svg.append('text')
+            .attr('x', bx).attr('y', y0 + 21)
+            .attr('text-anchor', ba).attr('fill', dc).attr('opacity', 0.72)
+            .attr('font-size', isPortrait ? 7 : 9).attr('font-family', FF)
+            .text(refs.slice(0, 16));
+        }
       }
     });
 
-    // En-têtes colonnes
+    // ── En-têtes colonnes ────────────────────────────────────────────────
+    // Recettes : au-dessus du premier nœud col 0
     const aNodes = graph.nodes.filter((n: any) => (n as ND).col === 0);
     const dNodes = graph.nodes.filter((n: any) => (n as ND).col === 2);
+    const bNodesGraph = graph.nodes.filter((n: any) => (n as ND).col === 1);
+
     if (aNodes.length) {
       svg.append('text')
         .attr('x', aNodes[0].x0).attr('y', MT - 10)
@@ -429,12 +408,6 @@ export default function Sankey(props: SankeyProps) {
         .text('Dépenses');
     }
 
-    // Légende OAT
-    svg.append('text')
-      .attr('x', width / 2).attr('y', H - 2)
-      .attr('text-anchor', 'middle').attr('fill', C.oat)
-      .attr('font-size', 9).attr('font-family', FF)
-      .text('🟠 Emprunt OAT = passif (dette future) — pas une recette fiscale');
 
   }, [width, H, ML, MR, MT, MB, props]);
 

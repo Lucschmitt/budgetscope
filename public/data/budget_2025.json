@@ -46,7 +46,7 @@
       },
       "dette_annuelle": {
         "label": "Dette créée cette année",
-        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.",
+        "infobulle": "Montant estimé de dette publique supplémentaire créée en 2025, correspondant au déficit consolidé État + Sécu. Ce montant vient s'ajouter au stock de dette existant (3 482 Mrd€ à fin T3 2025). Il est financé par l'émission d'OAT (Obligations Assimilables du Trésor) pour l'État et par les emprunts de l'ACOSS/URSSAF Caisse Nationale pour la Sécu.\n\nNote de périmètre : ce simulateur couvre uniquement le Budget Général de l'État (BGÉ) et les régimes de base de la Sécurité sociale. Le déficit consolidé affiché (−134,8 Mrd€ pour l'exécuté 2025) est inférieur au déficit public total INSEE (−152,5 Mrd€) car il n'inclut pas les collectivités locales (−15,6 Mrd€) ni les Organismes Divers d'Administration Centrale — ODAC (−2,1 Mrd€).",
         "source": "INSEE — Dette publique au sens de Maastricht T3 2025"
       },
       "dette_totale": {
@@ -191,8 +191,8 @@
       "valeur": 120,
       "min": 80,
       "max": 160,
-      "source": "PLF 2025 data.economie.gouv.fr — Enseignement scolaire 89 Mrd + Recherche & enseignement supérieur 31 Mrd",
-      "infobulle": "Premier poste de dépenses de l'État. Comprend les 860 000 enseignants du premier et second degré (Enseignement scolaire : 89 Mrd) et les universités, grandes écoles, organismes de recherche comme le CNRS (Recherche & sup. : 31 Mrd). Les salaires représentent ~85% du total."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Missions EC (Enseignement scolaire 88.8 Mrd) + RA (Recherche & enseignement sup. 31.3 Mrd)",
+      "infobulle": "Enseignement scolaire (88.8 Mrd€, mission EC) : école maternelle, primaire, collège, lycée, enseignement privé sous contrat. Recherche et enseignement supérieur (31.3 Mrd€, mission RA) : universités, organismes de recherche (CNRS, INSERM, CEA...). Total : 120.1 Mrd€."
     },
     {
       "id": "pensions",
@@ -200,8 +200,8 @@
       "valeur": 69,
       "min": 50,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Pensions",
-      "infobulle": "Retraites des fonctionnaires civils et militaires de l'État (hors collectivités locales et hôpitaux, couverts par la CNRACL). Ce poste est distinct des retraites du régime général (côté Sécu). Il augmente mécaniquement avec les départs en retraite de la fonction publique d'État.",
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Mission RB (Régimes sociaux et retraite, 6,0 Mrd) + CAS Pensions programmes 741/742/743 (~63 Mrd, hors périmètre BG mais dans la LFI)",
+      "infobulle": "Pensions des fonctionnaires civils et militaires. La mission RB (6,0 Mrd€) couvre les régimes spéciaux (SNCF, RATP, mines). Le CAS Pensions (~63 Mrd€) finance les retraites des fonctionnaires d'État via un compte d'affectation spéciale alimenté par les cotisations patronales et salariales. Total : 69 Mrd€.",
       "fixe": true
     },
     {
@@ -210,8 +210,8 @@
       "valeur": 52,
       "min": 52,
       "max": 52,
-      "source": "DGFiP SMB 31/12/2025 — Charges de la dette de l'État",
-      "infobulle": "Intérêts payés sur la dette publique accumulée (~3 200 Mrd). Ce poste est incompressible à court terme : il dépend des taux d'intérêt et du stock de dette. La hausse des taux depuis 2022 fait mécaniquement monter ce poste chaque année. La France paye ~52 Mrd d'intérêts en 2025.",
+      "source": "DGFiP SMB 31/12/2025 — Charge nette de la dette de l'État. Note : mission EB (Engagements financiers) = 61.3 Mrd€ inclut aussi les appels en garantie (+9.3 Mrd€)",
+      "infobulle": "Intérêts versés aux détenteurs d'OAT (obligations d'État). La valeur DGFiP (52 Mrd€) correspond à la charge stricte de la dette. La mission EB (61.3 Mrd€) est plus large : elle inclut les appels en garantie de l'État (+9.3 Mrd€) et d'autres engagements financiers. En hausse de +10 Mrd par rapport à 2024 en raison de la remontée des taux d'intérêt.",
       "fixe": true
     },
     {
@@ -220,17 +220,17 @@
       "valeur": 60,
       "min": 40,
       "max": 80,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Défense",
-      "infobulle": "Budget des armées (armée de terre, marine, armée de l'air, gendarmerie nationale). Augmentation programmée par la Loi de Programmation Militaire 2024-2030 pour atteindre 2% du PIB (objectif OTAN). Comprend équipements, personnel militaire et opérations extérieures."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Mission DA (Défense) : 60.0 Mrd€",
+      "infobulle": "Budget de la Défense nationale (60.0 Mrd€, mission DA). Inclut équipements des forces (Prog. 146), préparation et emploi des forces (Prog. 178), soutien (Prog. 212). Conforme à la LPM 2024-2030 qui prévoit une trajectoire haussière jusqu'à 2% du PIB."
     },
     {
       "id": "solidarite",
       "label": "Solidarité & cohésion",
-      "valeur": 54,
+      "valeur": 56,
       "min": 35,
       "max": 75,
-      "source": "PLF 2025 data.economie.gouv.fr — Solidarité 30 Mrd + Cohésion des territoires 24 Mrd",
-      "infobulle": "Regroupe les minima sociaux (RSA, AAH, prime d'activité via l'État), l'aide au logement (APL : ~18 Mrd), l'hébergement d'urgence et les politiques d'insertion. Le RSA est financé par les départements mais l'État compense partiellement."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Missions SE (Solidarité 30.4 Mrd) + VA (Cohésion des territoires 23.8 Mrd) + SA (Santé 1.6 Mrd)",
+      "infobulle": "Solidarité et insertion (30.4 Mrd€, mission SE) : RSA, AAH, prime d'activité, protection de l'enfance. Cohésion des territoires (23.8 Mrd€, mission VA) : logement, hébergement, politique de la ville. Santé (1.6 Mrd€, mission SA) : hors Assurance maladie (qui est dans le PLFSS). Total : 55.8 Mrd€."
     },
     {
       "id": "securite",
@@ -238,8 +238,8 @@
       "valeur": 38,
       "min": 25,
       "max": 55,
-      "source": "PLF 2025 data.economie.gouv.fr — Sécurités 25 Mrd + Justice 13 Mrd",
-      "infobulle": "Police nationale, gendarmerie nationale (hors défense), sécurité civile (Sécurités : 25 Mrd) et système judiciaire — tribunaux, prisons, aide juridictionnelle (Justice : 13 Mrd). La justice française est chroniquement sous-dotée : 89€/habitant contre 130€ en moyenne UE."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Missions SB (Sécurités 25.2 Mrd) + JA (Justice 12.5 Mrd)",
+      "infobulle": "Sécurités (25.2 Mrd€, mission SB) : Police nationale (Prog. 176), Gendarmerie nationale (Prog. 152), Sécurité civile (Prog. 161). Justice (12.5 Mrd€, mission JA) : tribunaux, pénitentiaire, protection judiciaire de la jeunesse. Total : 37.7 Mrd€."
     },
     {
       "id": "collectivites",
@@ -247,8 +247,8 @@
       "valeur": 50,
       "min": 30,
       "max": 70,
-      "source": "DGFiP SMB 31/12/2025 — PSR collectivités 46 Mrd + Relations CT 4 Mrd (hors avances fiscales 134 Mrd)",
-      "infobulle": "Dotations versées aux communes, départements et régions (Dotation Globale de Fonctionnement, dotations de péréquation). Ne comprend pas les avances de fiscalité locale (134 Mrd) qui sont des flux de trésorerie remboursés dans l'année, ni la TVA transférée aux collectivités (75 Mrd, visible côté recettes)."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Mission RC (Relations collectivités territoriales, 4.1 Mrd) + PSR collectivités (~45,9 Mrd hors missions : DGF 26,8 + FCTVA 7,2 + autres)",
+      "infobulle": "Transferts aux collectivités territoriales : dotations budgétaires mission RC (4.1 Mrd€) + Prélèvements sur Recettes (~45,9 Mrd€) hors missions budgétaires. Les PSR incluent la DGF (Dotation Globale de Fonctionnement, 26,8 Mrd€), le FCTVA (7,2 Mrd€) et diverses compensations fiscales. Total : ~50 Mrd€."
     },
     {
       "id": "transition_energetique",
@@ -256,8 +256,8 @@
       "valeur": 21,
       "min": 10,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Écologie, développement et mobilité durables",
-      "infobulle": "Financement des énergies renouvelables, primes à la conversion automobile, rénovation thermique des bâtiments publics, infrastructures de transport durables. +2,8 Mrd par rapport à 2024 pour accompagner la montée en charge du bonus écologique et de MaPrimeRénov'."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Mission TA (Écologie, développement et mobilité durables) : 20.5 Mrd€",
+      "infobulle": "Mission Écologie, développement et mobilité durables (20.5 Mrd€, mission TA). Inclut : infrastructures de transport (Prog. 203), énergie et climat (Prog. 174), prévention des risques (Prog. 181), biodiversité (Prog. 113), bonus écologique, MaPrimeRénov'."
     },
     {
       "id": "emploi_formation",
@@ -265,16 +265,16 @@
       "valeur": 22,
       "min": 12,
       "max": 35,
-      "source": "PLF 2025 data.economie.gouv.fr — Mission Travail, emploi et administration des ministères sociaux",
-      "infobulle": "Financement de France Travail (ex-Pôle emploi), contrats aidés, apprentissage (exonérations de cotisations), formation professionnelle via France Compétences. L'apprentissage représente ~5 Mrd d'exonérations de charges patronales financées par ce budget."
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Mission TB (Travail, emploi et administration des ministères sociaux) : 21.6 Mrd€",
+      "infobulle": "Mission Travail, emploi et administration des ministères sociaux (21.6 Mrd€, mission TB). Inclut : accès et retour à l'emploi (France Travail), accompagnement des mutations économiques, amélioration de la qualité de l'emploi, exonérations d'apprentissage."
     },
     {
       "id": "autres_plf",
       "label": "Autres dépenses État",
-      "valeur": 62,
+      "valeur": 60,
       "min": 35,
       "max": 90,
-      "source": "PLF 2025 data.economie.gouv.fr — Gestion finances 11 + Régimes sociaux 6 + France 2030 6 + APD 5 + AGTE 5 + Culture 4 + Économie 4 + Action ext. 4 + petites missions 17",
+      "source": "data.budget.gouv.fr — PLF 2025 crédits de paiement par destination (fichier officiel Ministère des Finances) — Agrégat de 15 missions < 10 Mrd chacune : GA(11)+AV(5,8)+AD(5,2)+AB(5)+AC(4,4)+AQ(4)+CB(3,9)+DB(3,9)+AA(3,5)+OA(2,6)+IA(2)+MB(1,9)+SF(1,6)+PB(1,2)+DC(1,1)",
       "infobulle": "Regroupe : gestion des finances publiques (DGFiP, douanes : 11 Mrd), régimes sociaux et retraite (SNCF, RATP, mines : 6 Mrd), France 2030 (innovation et industrie verte : 6 Mrd), aide publique au développement (5 Mrd), administration territoriale de l'État (5 Mrd), culture (4 Mrd), économie (4 Mrd), action extérieure (4 Mrd) et autres missions < 3 Mrd.",
       "detail": {
         "gestion_finances": 11,
@@ -294,7 +294,7 @@
       "valeur": 23,
       "min": 18,
       "max": 28,
-      "source": "DGFiP SMB 31/12/2025 — PSR au profit de l'Union européenne",
+      "source": "PLF 2025 article d'équilibre — Prélèvement sur Recettes au profit de l'Union européenne : 23 Mrd€ (hors missions BG, inscrit à l'article 34 du PLF)",
       "infobulle": "Prélèvement sur recettes versé à l'Union européenne au titre du budget communautaire. Calculé selon un barème basé sur le RNB et la TVA française. Ce montant finance les politiques communes (PAC, fonds structurels, recherche...). Il représente environ 0,8% du RNB français.",
       "fixe": true
     }

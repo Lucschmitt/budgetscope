@@ -5,13 +5,7 @@ import SankeyChart from './Sankey';
 interface Poste {
   id: string; label: string; valeur: number; min: number; max: number;
   fixe?: boolean; source: string; infobulle: string;
-  // Anciens champs (compatibilité)
   taux_compensation_secu?: number; taux_allegement?: number;
-  // Nouveaux champs TVA split (budget_2025.json v2)
-  taux_tva_etat?: number;
-  taux_tva_secu?: number;
-  taux_tva_collectivites?: number;
-  taux_tva_audiovisuel?: number;
 }
 interface Mesure {
   id: string; label: string; source_label: string; source_url: string;
@@ -21,44 +15,15 @@ interface Mesure {
   analogies_historiques: { pays: string; annee: number; mesure: string; impact_observe: string; score: number }[];
   questions: string[];
 }
-interface BudgetMeta {
-  annee: number; pib: number;
-  dette_initiale_pct: number; dette_montant_mds?: number;
-  // Nouveaux champs sélecteur
-  id: string;
-  label: string;
-  label_long?: string;
-  type: 'previsionnel' | 'execute';
-  date_vote?: string;
-  contexte?: string;
-  contexte_court?: string;
-  alerte?: string;
-  alerte_type?: 'warning' | 'info' | 'success';
-}
 interface BudgetData {
-  meta: BudgetMeta;
+  meta: { annee: number; pib: number; dette_initiale_pct: number };
   recettes_plf: Poste[]; recettes_plfss: Poste[];
-  consolidation: {
-    // Anciens champs (compatibilité)
-    compensation_tva_secu?: number;
-    emprunt_etat: number;
-    infobulle_compensation: string;
-    infobulle_emprunt: string;
-    // Nouveaux champs (budget_2025.json v2)
-    tva_vers_etat?: number;
-    tva_vers_secu?: number;
-    tva_vers_collectivites?: number;
-    tva_vers_audiovisuel?: number;
-  };
+  consolidation: { compensation_tva_secu: number; emprunt_etat: number; infobulle_compensation: string; infobulle_emprunt: string; };
   depenses_plf: Poste[]; depenses_plfss: Poste[];
   mesures: Mesure[];
   multiplicateurs: Record<string, { bas: number; haut: number }>;
 }
-interface Props {
-  data: BudgetData;
-  budgetList?: { id: string; label: string; file: string }[];
-  onBudgetChange?: (id: string) => void;
-}
+interface Props { data: BudgetData }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const STATUT: Record<string, { label: string; cls: string }> = {
@@ -192,10 +157,9 @@ function MesureRow({ mesure, checked, onToggle, onOpenFiche }: {
 }
 
 // ── Simulateur ─────────────────────────────────────────────────────────────
-export default function Simulateur({ data, budgetList = [], onBudgetChange }: Props) {
+export default function Simulateur({ data }: Props) {
   const [cochees, setCochees]         = useState<Set<string>>(new Set());
   const [ficheOuverte, setFiche]      = useState<Mesure | null>(null);
-  const [panelInfo, setPanelInfo]     = useState<{title: string; content: string; source?: string} | null>(null);
 
   const deltas = useMemo(() => {
     const acc: Record<string, { min: number; max: number }> = {};
@@ -223,35 +187,14 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
   const totalPlf   = useMemo(() => data.recettes_plf.reduce((s, p) => s + ve(p), 0),   [veff]);
   const totalPlfss = useMemo(() => data.recettes_plfss.reduce((s, p) => s + ve(p), 0), [veff]);
 
-  // ── Taux TVA split (depuis budget_2025.json) ────────────────────────────
-  const tvaPoste = data.recettes_plf.find(p => p.id === 'tva');
-  const taux_tva_etat          = tvaPoste?.taux_tva_etat          ?? 0.4815; // 104/216 (inclut audiovisuel 6 Mrd)
-  const taux_tva_secu          = tvaPoste?.taux_tva_secu          ?? 0.171;
-  const taux_tva_collectivites = tvaPoste?.taux_tva_collectivites ?? 0.347;
-  const taux_tva_audiovisuel   = tvaPoste?.taux_tva_audiovisuel   ?? 0.0;   // intégré dans taux_tva_etat
-
-  // ── compensationSecu = TVA part Sécu (pour info Sankey uniquement) ────────
-  // Ne sert PLUS à calculer plfNet (suppression double-déduction)
   const compensationSecu = useMemo(() => {
-    const tva = veff['tva'] ?? 216;
-    return Math.round(tva * taux_tva_secu);
-  }, [veff, taux_tva_secu]);
+    const tva  = veff['tva'] ?? 216;
+    const taux = data.recettes_plf.find(p => p.id === 'tva')?.taux_compensation_secu ?? 0.30;
+    return Math.round(tva * taux);
+  }, [veff]);
 
-  // ── plfNet : recettes État = hors TVA hors OAT + part TVA→État ───────────
-  // La TVA vers Sécu/Collectivités/Audiovisuel sort directement du nœud TVA
-  // dans Sankey.tsx — elle ne transite pas par le Budget État
-  const plfNet = useMemo(() => {
-    const tvaVal        = veff['tva'] ?? 216;
-    const tvaVersEtat   = Math.round(tvaVal * taux_tva_etat);
-    const recHorsTvaOat = data.recettes_plf
-      .filter(p => p.id !== 'tva' && p.id !== 'oat')
-      .reduce((s, p) => s + ve(p), 0);
-    return recHorsTvaOat + tvaVersEtat;
-  }, [veff, taux_tva_etat]);
-
-  const plfssNet = useMemo(() => {
-    return totalPlfss + compensationSecu;
-  }, [totalPlfss, compensationSecu]);
+  const plfNet   = totalPlf - compensationSecu;
+  const plfssNet = totalPlfss + compensationSecu;
   const emprunt  = data.consolidation.emprunt_etat;
 
   const totalDepPlf   = useMemo(() => data.depenses_plf.reduce((s, p) => s + ve(p), 0),   [veff]);
@@ -276,62 +219,6 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
     return { bas: Math.min(bas, haut), haut: Math.max(bas, haut) };
   }, [cochees]);
 
-  // ── Calculs indicateurs enrichis ─────────────────────────────────────────
-  const indics = (data.meta as any).indicateurs ?? {};
-
-  // Déficit BGÉ = recettes hors OAT − dépenses PLF (périmètre DGFiP officiel)
-  const deficitBGE = useMemo(() => {
-    const recHorsTvaOat = data.recettes_plf
-      .filter(p => p.id !== 'tva' && p.id !== 'oat')
-      .reduce((s, p) => s + ve(p), 0);
-    const tvaVal      = veff['tva'] ?? 216;
-    const tvaVersEtat = Math.round(tvaVal * taux_tva_etat);
-    const recBGE      = recHorsTvaOat + tvaVersEtat; // ~386 Mrd recettes fiscales nettes
-    return recBGE - totalDepPlf;
-  }, [veff, totalDepPlf, taux_tva_etat]);
-
-  // Déficit Sécu = recettes Sécu − dépenses PLFSS
-  const deficitSecu = useMemo(() => {
-    return plfssNet - totalDepPlfss;
-  }, [plfssNet, totalDepPlfss]);
-
-  // Dette annuelle ajoutée :
-  // Base = valeurs de référence officielle du JSON (INSEE/DGFiP)
-  // Ajustement = delta introduit par les mesures cochées (calculé depuis le Sankey)
-  const detteAjoutee = useMemo(() => {
-    // Référence officielle du JSON (ex: −128,1 BGÉ + −6,7 Sécu = −134,8 Mrd pour exec 2025)
-    const refBGE  = (indics.deficit_bge  as any)?.valeur_reference_mds as number  ?? -125;
-    const refSecu = (indics.deficit_secu as any)?.valeur_reference_mds as number  ?? -23;
-    const refTotal = refBGE + refSecu;
-
-    // Delta des mesures cochées : impact sur recettes PLF + PLFSS
-    // Un delta positif sur les recettes réduit le déficit, négatif l'aggrave
-    let deltaRecettesPLF  = 0;
-    let deltaDepensesPLF  = 0;
-    let deltaRecettesPLFSS = 0;
-    let deltaDepensesPLFSS = 0;
-    for (const id of cochees) {
-      const m = data.mesures.find(m => m.id === id);
-      if (!m) continue;
-      const mid = (m.impact_min + m.impact_max) / 2;
-      if (m.type === 'recette' && m.budget === 'plf')    deltaRecettesPLF   += mid;
-      if (m.type === 'depense' && m.budget === 'plf')    deltaDepensesPLF   += mid;
-      if (m.type === 'recette' && m.budget === 'plfss')  deltaRecettesPLFSS += mid;
-      if (m.type === 'depense' && m.budget === 'plfss')  deltaDepensesPLFSS += mid;
-    }
-    const deltaBGE  = deltaRecettesPLF  - deltaDepensesPLF;   // + = améliore déficit
-    const deltaSecu = deltaRecettesPLFSS - deltaDepensesPLFSS;
-    return refTotal + deltaBGE + deltaSecu; // négatif = déficit = dette ajoutée
-  }, [cochees, indics, data.mesures]);
-  const detteAjouteePct = (detteAjoutee / data.meta.pib) * 100;
-
-  // Dette totale = stock initial + dette ajoutée cette année
-  const detteTotaleMds  = ((data.meta as any).dette_montant_mds as number)
-    ?? Math.round(data.meta.dette_initiale_pct / 100 * data.meta.pib);
-  const detteTotaleAvecAjout = detteTotaleMds + Math.abs(detteAjoutee);
-  const detteTotalePct  = detteTotaleAvecAjout / data.meta.pib * 100;
-  const detteEnAnnesPIB = detteTotaleMds / data.meta.pib;
-
   const toggle = (id: string) => setCochees(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
@@ -350,34 +237,6 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
 
   return (
     <>
-      {/* ── Sélecteur de budget ── */}
-      {budgetList.length > 1 && (
-        <div className="budget-selector">
-          {budgetList.map(b => (
-            <button
-              key={b.id}
-              className={`budget-btn${data.meta.id === b.id ? ' active' : ''}`}
-              onClick={() => onBudgetChange?.(b.id)}
-            >
-              {b.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── Bandeau contextuel ── */}
-      {data.meta.alerte && (
-        <div className={`budget-banner budget-banner--${data.meta.alerte_type ?? 'info'}`}>
-          <div className="budget-banner-text">
-            <span className="budget-banner-label">{data.meta.label_long ?? data.meta.label}</span>
-            <span className="budget-banner-msg">{data.meta.alerte}</span>
-          </div>
-          {data.meta.contexte_court && (
-            <span className="budget-banner-sub">{data.meta.contexte_court}</span>
-          )}
-        </div>
-      )}
-
       <div className="sankey-full">
         <SankeyChart
           recettes_plf={sankeyRecettesPLF}
@@ -386,10 +245,6 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
           depenses_plfss={sankeyDepensesPLFSS}
           compensationSecu={compensationSecu}
           emprunt={data.consolidation.emprunt_etat}
-          taux_tva_etat={taux_tva_etat}
-          taux_tva_secu={taux_tva_secu}
-          taux_tva_collectivites={taux_tva_collectivites}
-          taux_tva_audiovisuel={taux_tva_audiovisuel}
           compensation_infobulle={data.consolidation.infobulle_compensation}
           emprunt_infobulle={data.consolidation.infobulle_emprunt}
           deltas={deltas}
@@ -397,122 +252,29 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         />
       </div>
 
-      {/* ── Indicateurs ligne 1 ── */}
+      {/* ── Indicateurs ── */}
       <div className="indicators">
-
-        {/* Déficits BGÉ + Sécu — double encart */}
-        <div className="indicator indicator--double"
-             onClick={() => indics.deficit_bge && setPanelInfo({
-               title: indics.deficit_bge.label ?? 'Déficit BGÉ',
-               content: (indics.deficit_bge.infobulle ?? '') + '\n\n' + (indics.deficit_bge.note_methodologique ?? ''),
-               source: indics.deficit_bge.source
-             })}
-             style={{ cursor: indics.deficit_bge ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Déficits annuels
-            {indics.deficit_bge && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className="ind-double-row">
-            <span className="ind-double-label">BGÉ</span>
-            <span className={`ind-double-val ${deficitBGE >= 0 ? 'val-pos' : 'val-neg'}`}>
-              {fmt(deficitBGE)} €
-            </span>
-          </div>
-          <div className="ind-double-row"
-               onClick={e => { e.stopPropagation(); indics.deficit_secu && setPanelInfo({
-                 title: indics.deficit_secu.label ?? 'Déficit Sécu',
-                 content: indics.deficit_secu.infobulle ?? '',
-                 source: indics.deficit_secu.source
-               }); }}>
-            <span className="ind-double-label">Sécu</span>
-            <span className={`ind-double-val ${deficitSecu >= 0 ? 'val-pos' : 'val-neg'}`}>
-              {fmt(deficitSecu)} €
-            </span>
-          </div>
+        <div className="indicator">
+          <div className="ind-label">Solde hors emprunt</div>
+          <div className={`ind-value ${solde >= 0 ? 'val-pos' : 'val-neg'}`}>{fmt(solde)} €</div>
+          <div className="ind-sub">{soldePct.toFixed(1)} % du PIB</div>
         </div>
-
-        {/* Dette ajoutée cette année */}
-        <div className="indicator"
-             onClick={() => indics.dette_annuelle && setPanelInfo({
-               title: indics.dette_annuelle.label ?? 'Dette ajoutée',
-               content: indics.dette_annuelle.infobulle ?? '',
-               source: indics.dette_annuelle.source
-             })}
-             style={{ cursor: indics.dette_annuelle ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Dette ajoutée {data.meta.annee ?? ''}
-            {indics.dette_annuelle && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className={`ind-value ${detteAjoutee < 0 ? 'val-neg' : 'val-pos'}`}>
-            {fmt(detteAjoutee)} €
-          </div>
-          <div className="ind-sub">{Math.abs(detteAjouteePct).toFixed(1)} % du PIB</div>
+        <div className="indicator">
+          <div className="ind-label">Dette estimée</div>
+          <div className={`ind-value ${dette > 100 ? 'val-neg' : 'val-pos'}`}>{dette.toFixed(1)} %</div>
+          <div className="ind-sub">du PIB — réf. 60 % (Maastricht)</div>
         </div>
-
-        {/* Dette totale stock */}
-        <div className="indicator"
-             onClick={() => indics.dette_totale && setPanelInfo({
-               title: indics.dette_totale.label ?? 'Dette totale',
-               content: indics.dette_totale.infobulle ?? '',
-               source: indics.dette_totale.source
-             })}
-             style={{ cursor: indics.dette_totale ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Dette totale
-            {indics.dette_totale && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className={`ind-value ${detteTotalePct > 100 ? 'val-neg' : 'val-neutral'}`}>
-            {detteTotaleMds.toLocaleString('fr-FR')} Mrd€
-          </div>
-          <div className="ind-sub">{detteEnAnnesPIB.toFixed(2)} ann. PIB · {detteTotalePct.toFixed(1)} %</div>
+        <div className="indicator">
+          <div className="ind-label">Impact croissance</div>
+          <div className="ind-value val-neutral">{impactCroissance.bas.toFixed(2)} à {impactCroissance.haut.toFixed(2)} %</div>
+          <div className="ind-sub">Fourchette multiplicateurs OFCE</div>
         </div>
-
-        {/* Impact croissance */}
-        <div className="indicator"
-             onClick={() => indics.croissance && setPanelInfo({
-               title: indics.croissance.label ?? 'Impact croissance',
-               content: indics.croissance.infobulle ?? '',
-               source: indics.croissance.source
-             })}
-             style={{ cursor: indics.croissance ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Impact croissance
-            {indics.croissance && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className="ind-value val-neutral">
-            {impactCroissance.bas.toFixed(2)} à {impactCroissance.haut.toFixed(2)} %
-          </div>
-          <div className="ind-sub">Multiplicateurs OFCE / IPP</div>
-        </div>
-
-        {/* Mesures actives */}
         <div className="indicator">
           <div className="ind-label">Mesures actives</div>
           <div className="ind-value val-neutral">{cochees.size}</div>
-          <div className="ind-sub">{cochees.size === 0 ? `Budget ${data.meta.label ?? ''} de base` : 'Scénario modifié'}</div>
+          <div className="ind-sub">{cochees.size === 0 ? 'Budget PLF 2025 de base' : 'Scénario modifié'}</div>
         </div>
-
       </div>
-
-      {/* ── Panneau méthodologique latéral ── */}
-      {panelInfo && (
-        <div className="panel-overlay" onClick={() => setPanelInfo(null)}>
-          <div className="panel-drawer" onClick={e => e.stopPropagation()}>
-            <div className="panel-header">
-              <h3 className="panel-title">{panelInfo.title}</h3>
-              <button className="panel-close" onClick={() => setPanelInfo(null)}>✕</button>
-            </div>
-            <div className="panel-body">
-              {panelInfo.content.split('\n\n').map((para, i) => (
-                <p key={i} className="panel-para">{para}</p>
-              ))}
-            </div>
-            {panelInfo.source && (
-              <div className="panel-footer">Source : {panelInfo.source}</div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Mesures ── */}
       <div className="mesures-zone">
@@ -636,46 +398,6 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         .analogie-impact { color: var(--accent-green); } .analogie-score { margin-left: auto; color: var(--text-muted); font-size: 0.65rem; }
         .modal-footer { display: flex; gap: 1rem; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.6rem; }
         .modal-footer strong { color: var(--text-secondary); }
-
-        /* ── Indicateurs enrichis ── */
-        .indicators { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 0.65rem; margin: 0.75rem 0; }
-        @media (max-width: 900px) { .indicators { grid-template-columns: repeat(3,1fr); } }
-        @media (max-width: 600px) { .indicators { grid-template-columns: repeat(2,1fr); } }
-        .indicator--double { grid-row: span 1; display: flex; flex-direction: column; gap: 0.2rem; }
-        .ind-double-row { display: flex; justify-content: space-between; align-items: center; padding: 0.15rem 0; border-top: 1px solid var(--border-subtle); }
-        .ind-double-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-        .ind-double-val { font-size: 0.85rem; font-weight: 700; }
-        .ind-info-icon { font-size: 0.6rem; color: var(--text-muted); margin-left: 3px; }
-        .indicator[style*="pointer"] { transition: border-color 0.15s; }
-        .indicator[style*="pointer"]:hover { border-color: var(--accent-blue); }
-
-        /* ── Panneau latéral ── */
-        .panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; display: flex; justify-content: flex-end; }
-        .panel-drawer { background: #0d1117; border-left: 1px solid var(--border); width: min(480px, 92vw); height: 100%; display: flex; flex-direction: column; overflow: hidden; animation: slideIn 0.2s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .panel-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 0; }
-        .panel-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0; }
-        .panel-close:hover { color: var(--text-primary); }
-        .panel-body { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        .panel-para { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.65; margin: 0; white-space: pre-line; }
-        .panel-footer { padding: 0.875rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--text-muted); font-style: italic; flex-shrink: 0; }
-
-        /* ── Sélecteur de budget ── */
-        .budget-selector { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-        .budget-btn { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.75rem; transition: all 0.15s; }
-        .budget-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
-        .budget-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
-
-        /* ── Bandeau contextuel ── */
-        .budget-banner { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.875rem; border-radius: 8px; margin-bottom: 0.5rem; flex-wrap: wrap; }
-        .budget-banner--warning { background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3); }
-        .budget-banner--info    { background: rgba(56,139,253,0.08); border: 1px solid rgba(56,139,253,0.2); }
-        .budget-banner--success { background: rgba(63,185,80,0.08);  border: 1px solid rgba(63,185,80,0.2); }
-        .budget-banner-text { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
-        .budget-banner-label { font-size: 0.72rem; font-weight: 600; color: var(--text-primary); }
-        .budget-banner-msg   { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4; }
-        .budget-banner-sub   { font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; align-self: center; }
       `}</style>
     </>
   );

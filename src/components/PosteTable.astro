@@ -1,0 +1,121 @@
+---
+// src/components/PosteTable.astro
+// Table réutilisable pour afficher les postes budgétaires avec source + infobulle
+
+interface Poste {
+  id: string;
+  label: string;
+  valeur: number;
+  min?: number;
+  max?: number;
+  fixe?: boolean;
+  source: string;
+  infobulle: string;
+  taux_tva_etat?: number;
+  taux_tva_secu?: number;
+  taux_tva_collectivites?: number;
+}
+
+interface Props {
+  postes: Poste[];
+  prefix: string;
+  isDepense?: boolean;
+}
+
+const { postes, prefix, isDepense = false } = Astro.props;
+
+// Heuristique confiance basée sur le contenu de la source
+function confiance(source: string): 'haute' | 'moyenne' | 'faible' {
+  if (!source) return 'faible';
+  const s = source.toLowerCase();
+  if (s.includes('estimation') || s.includes('estimé') || s.includes('rétro-calculé') || s.includes('%')) return 'moyenne';
+  if (s.includes('dgfip') || s.includes('smb') || s.includes('annexe 3') || s.includes('aft')) return 'haute';
+  if (s.includes('plfss') || s.includes('plf') || s.includes('data.economie')) return 'haute';
+  return 'moyenne';
+}
+
+function labelConfiance(c: string) {
+  if (c === 'haute')   return '● Confirmé';
+  if (c === 'moyenne') return '● Estimé';
+  return '● À vérifier';
+}
+---
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Clé JSON</th>
+      <th>Label</th>
+      <th class="th-val">Valeur</th>
+      <th>Fourchette</th>
+      <th>Source</th>
+      <th>Commentaire</th>
+      <th>Confiance</th>
+    </tr>
+  </thead>
+  <tbody>
+    {postes.map((p) => {
+      const c = confiance(p.source);
+      return (
+        <tr>
+          <td><code>{prefix}.{p.id}</code></td>
+          <td class="td-label">
+            {p.label}
+            {p.fixe && <span class="fixe-badge">fixe</span>}
+          </td>
+          <td class="val">
+            {isDepense ? '' : ''}{p.valeur.toLocaleString('fr-FR')} Mrd€
+          </td>
+          <td class="td-range">
+            {(p.min !== undefined && p.max !== undefined)
+              ? `${p.min} – ${p.max}`
+              : <span class="muted">—</span>
+            }
+          </td>
+          <td class="td-source">{p.source}</td>
+          <td class="infobulle-cell">{p.infobulle}</td>
+          <td>
+            <span class={`conf conf--${c}`}>{labelConfiance(c)}</span>
+          </td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+
+<style>
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .data-table th {
+    text-align: left; padding: 0.4rem 0.6rem;
+    font-size: 0.63rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.15);
+  }
+  .data-table td {
+    padding: 0.45rem 0.6rem; color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top; line-height: 1.45;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .data-table code {
+    font-size: 0.65rem; color: #58a6ff;
+    background: rgba(56,139,253,0.1); padding: 1px 4px; border-radius: 3px;
+  }
+  .th-val { text-align: right; }
+  .val { font-weight: 600; color: var(--text-primary); white-space: nowrap; text-align: right; }
+  .td-label { font-weight: 500; color: var(--text-primary); }
+  .td-range { color: var(--text-muted); white-space: nowrap; }
+  .td-source { font-size: 0.66rem; color: var(--text-muted); max-width: 200px; }
+  .infobulle-cell { font-size: 0.66rem; color: var(--text-muted); max-width: 280px; line-height: 1.4; }
+  .muted { color: var(--text-muted); }
+  .fixe-badge {
+    font-size: 0.58rem; padding: 1px 4px; border-radius: 9999px;
+    background: var(--bg-hover); color: var(--text-muted);
+    border: 1px solid var(--border); margin-left: 4px;
+  }
+  .conf { font-size: 0.65rem; font-weight: 500; white-space: nowrap; }
+  .conf--haute   { color: #3fb950; }
+  .conf--moyenne { color: #d29922; }
+  .conf--faible  { color: #f85149; }
+</style>

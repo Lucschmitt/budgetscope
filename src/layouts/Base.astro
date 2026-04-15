@@ -10,6 +10,9 @@ const {
   title = 'BudgetScope',
   description = 'Simulateur interactif des finances publiques françaises'
 } = Astro.props;
+
+// Détecter la page active pour le style du lien
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -36,6 +39,12 @@ const {
         <div class="nav-meta">
           <span class="nav-badge">PLF 2025</span>
           <a href="/budgetscope/mesures/" class="nav-link">Mesures</a>
+          <a
+            href="/budgetscope/sources"
+            class={`nav-link${currentPath.includes('/sources') ? ' nav-link--active' : ''}`}
+          >
+            Sources
+          </a>
           <a href="https://github.com/lucschmitt/budgetscope" class="nav-link nav-gh" target="_blank">
             GitHub
           </a>
@@ -125,8 +134,11 @@ const {
     font-size: 0.875rem;
     transition: color 0.2s;
   }
-
   .nav-link:hover { color: var(--text-primary); }
+  .nav-link--active {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
 
   main {
     max-width: 1400px;
