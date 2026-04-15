@@ -1,0 +1,240 @@
+[
+  {
+    "id": "taxe-zucman",
+    "label": "Taxe Zucman (ISF mondial 2%)",
+    "source_label": "Proposition LFI / G. Zucman (EU Tax Observatory)",
+    "source_url": "https://www.taxobservatory.eu/",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "ir",
+    "impact_min": 19,
+    "impact_max": 25,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Taxation minimale de 2% sur le patrimoine net des milliardaires mondiaux, proposée par l'économiste Gabriel Zucman. En France, concernerait environ 1 500 à 2 000 personnes. L'EU Tax Observatory estime le rendement mondial à 250 Mrd$, la part française à 19–25 Mrd€.",
+    "effets_indirects": [
+      "Fuite estimée à −0.03% des recettes (IPP 2023)",
+      "Dépend d'une coopération internationale — unilatéral difficile"
+    ],
+    "analogies_historiques": [
+      { "pays": "France", "annee": 1990, "mesure": "ISF (0,5–1,5% patrimoine net > 800k€)", "impact_observe": "Rendement ~5 Mrd€/an, exils fiscaux estimés +10 000 foyers", "score": 0.65 }
+    ],
+    "questions": [
+      "Taux de fuite réel au-delà de 3M€ ?",
+      "Impact sur PME familiales non cotées ?"
+    ]
+  },
+  {
+    "id": "suppression-ame",
+    "label": "Suppression de l'AME",
+    "source_label": "Programme RN / LR",
+    "source_url": "",
+    "type": "depense",
+    "budget": "plfss",
+    "poste": "sante",
+    "impact_min": -1.1,
+    "impact_max": -1.3,
+    "statut": "incertain",
+    "confiance": "faible",
+    "infobulle": "L'Aide Médicale d'État couvre les soins urgents des étrangers en situation irrégulière. Budget 2025 : ~1,2 Mrd€. La suppression entraînerait des externalités non chiffrées (report sur urgences, propagation maladies infectieuses).",
+    "effets_indirects": [
+      "Report urgences : +0.4 à +0.9 Mrd (Cour des comptes 2019)",
+      "Propagation maladies infectieuses non chiffrée"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Quel report réel vers les urgences ?",
+      "Coût de la non-prise en charge sur le marché du travail ?"
+    ]
+  },
+  {
+    "id": "hausse-tva-1pt",
+    "label": "Hausse TVA de 1 point (taux normal)",
+    "source_label": "Proposition générique — divers think tanks",
+    "source_url": "",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "tva",
+    "impact_min": 8,
+    "impact_max": 12,
+    "statut": "observe",
+    "confiance": "haute",
+    "infobulle": "Une hausse d'1 point du taux normal de TVA (20% → 21%) génère environ 8–12 Mrd de recettes supplémentaires. Impact régressif sur les ménages modestes.",
+    "effets_indirects": [
+      "Baisse consommation estimée −0.3% (multiplicateur OFCE)"
+    ],
+    "analogies_historiques": [
+      { "pays": "France", "annee": 2014, "mesure": "Hausse TVA normale 19,6% → 20%", "impact_observe": "+6 Mrd recettes, −0.2% consommation", "score": 0.92 }
+    ],
+    "questions": [
+      "Impact sur pouvoir d'achat des ménages modestes ?"
+    ]
+  },
+  {
+    "id": "plafonnement-niches-ir",
+    "label": "Plafonnement niches fiscales IR",
+    "source_label": "Programme NFP / rapports IGF",
+    "source_url": "",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "ir",
+    "impact_min": 4,
+    "impact_max": 8,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Abaissement du plafonnement global des niches fiscales IR (actuellement 10 000€/foyer). Un abaissement à 5 000€ rapporterait 4–8 Mrd selon l'IGF.",
+    "effets_indirects": [
+      "Réduction investissement locatif (Pinel, etc.)",
+      "Impact sur dons associatifs (réduction IR-dons)"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Quelles niches exclure (emploi à domicile, dons) ?",
+      "Impact sur investissement immobilier ?"
+    ]
+  },
+  {
+    "id": "suppression-cir-grandes-entreprises",
+    "label": "Suppression CIR grandes entreprises",
+    "source_label": "Programme NFP / rapports IGF",
+    "source_url": "",
+    "type": "recette",
+    "budget": "plf",
+    "poste": "is",
+    "impact_min": 3,
+    "impact_max": 5,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le Crédit d'Impôt Recherche coûte ~7 Mrd/an. Les grandes entreprises (CA > 250M€) en captent ~40%. Leur suppression du dispositif rapporterait 3–5 Mrd.",
+    "effets_indirects": [
+      "Risque de délocalisation R&D des grands groupes",
+      "PME et ETI non affectées"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Impact sur l'attractivité R&D de la France ?",
+      "Définition retenue de 'grande entreprise' ?"
+    ]
+  },
+  {
+    "id": "reforme-retraites-recul-age",
+    "label": "Réforme retraites — recul âge légal à 64 ans",
+    "source_label": "Loi retraites 2023 (en vigueur)",
+    "source_url": "https://www.legifrance.gouv.fr",
+    "type": "depense",
+    "budget": "plfss",
+    "poste": "retraites",
+    "impact_min": -8,
+    "impact_max": -15,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le recul de l'âge légal de 62 à 64 ans réduit les dépenses retraites à terme. Le COR estime les économies à 8–15 Mrd à horizon 2030, sous hypothèses d'emploi des seniors.",
+    "effets_indirects": [
+      "Hausse chômage seniors si emploi non absorbé (+2 à +4 Mrd allocations chômage)",
+      "Hausse invalidité/longue maladie (+1 à +2 Mrd)"
+    ],
+    "analogies_historiques": [
+      { "pays": "Allemagne", "annee": 2007, "mesure": "Recul âge légal 65 → 67 ans (progressif)", "impact_observe": "Économies ~12 Mrd€/an à terme, taux emploi seniors +8pts", "score": 0.75 }
+    ],
+    "questions": [
+      "Taux d'emploi seniors réellement atteignable ?",
+      "Impact sur les carrières longues et pénibilité ?"
+    ]
+  },
+  {
+    "id": "abrogation-reforme-retraites",
+    "label": "Abrogation réforme retraites (retour 62 ans)",
+    "source_label": "Programme NFP — Législatives 2024",
+    "source_url": "https://lafranceinsoumise.fr/wp-content/uploads/2024/06/Programme-nouveaufrontpopulaire.pdf",
+    "type": "depense",
+    "budget": "plfss",
+    "poste": "retraites",
+    "impact_min": 8,
+    "impact_max": 15,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Retour à 62 ans annulerait les économies de la réforme 2023. Coût estimé par le COR à 8–15 Mrd/an à horizon 2030.",
+    "effets_indirects": [
+      "Réduction chômage seniors (−2 à −4 Mrd allocations)",
+      "Nécessite financement complémentaire (cotisations ou fiscalité)"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Financement : cotisations ou déficit ?",
+      "Calendrier de montée en charge ?"
+    ]
+  },
+  {
+    "id": "smic-1600",
+    "label": "Hausse du SMIC à 1 600€ nets",
+    "source_label": "Programme NFP — Législatives 2024",
+    "source_url": "https://lafranceinsoumise.fr/wp-content/uploads/2024/06/Programme-nouveaufrontpopulaire.pdf",
+    "type": "depense",
+    "budget": "plf",
+    "poste": "emploi",
+    "impact_min": 8,
+    "impact_max": 14,
+    "statut": "hypothese_partielle",
+    "confiance": "moyenne",
+    "infobulle": "Le SMIC net est actuellement ~1 400€. Une hausse à 1 600€ (+14%) augmente la masse salariale publique et les prestations indexées. Coût direct FP + exonérations à recalibrer : 8–14 Mrd.",
+    "effets_indirects": [
+      "Hausse consommation des ménages modestes (+multiplicateur 0.8–1.2)",
+      "Risque emploi peu qualifié (+0 à +2% destruction nette selon OFCE)"
+    ],
+    "analogies_historiques": [
+      { "pays": "Allemagne", "annee": 2015, "mesure": "Introduction SMIC fédéral 8,5€/h", "impact_observe": "Impact emploi quasi-nul, +consommation", "score": 0.55 }
+    ],
+    "questions": [
+      "Impact sur l'emploi peu qualifié ?",
+      "Recalibrage des exonérations de cotisations Fillon ?"
+    ]
+  },
+  {
+    "id": "blocage-prix-energie",
+    "label": "Blocage des prix de l'énergie et de l'alimentation",
+    "source_label": "Programme NFP — Législatives 2024",
+    "source_url": "https://lafranceinsoumise.fr/wp-content/uploads/2024/06/Programme-nouveaufrontpopulaire.pdf",
+    "type": "depense",
+    "budget": "plf",
+    "poste": "autres",
+    "impact_min": 5,
+    "impact_max": 15,
+    "statut": "incertain",
+    "confiance": "faible",
+    "infobulle": "Blocage des prix sur l'énergie et 100 produits alimentaires de base. Coût de compensation aux producteurs/distributeurs très incertain : 5–15 Mrd selon périmètre et durée.",
+    "effets_indirects": [
+      "Distorsion du marché si prix maintenu sous coût de production",
+      "Effet sur inflation : −0.5 à −1.5 points temporaire"
+    ],
+    "analogies_historiques": [],
+    "questions": [
+      "Quel périmètre exact des produits ciblés ?",
+      "Mécanisme de compensation aux entreprises ?"
+    ]
+  },
+  {
+    "id": "investissement-ecologique",
+    "label": "Plan investissement écologique (bifurcation)",
+    "source_label": "Programme NFP — Législatives 2024",
+    "source_url": "https://lafranceinsoumise.fr/wp-content/uploads/2024/06/Programme-nouveaufrontpopulaire.pdf",
+    "type": "depense",
+    "budget": "plf",
+    "poste": "transition",
+    "impact_min": 25,
+    "impact_max": 40,
+    "statut": "hypothese_partielle",
+    "confiance": "faible",
+    "infobulle": "Le programme NFP prévoit un plan d'investissement massif pour la transition écologique (rénovation thermique, transports, énergie). Chiffrage programme : 25–40 Mrd/an en dépenses publiques supplémentaires.",
+    "effets_indirects": [
+      "Multiplicateur investissement public élevé : +0.8 à +1.5% PIB à terme",
+      "Réduction dépendance énergétique (−importations fossiles)"
+    ],
+    "analogies_historiques": [
+      { "pays": "États-Unis", "annee": 2022, "mesure": "Inflation Reduction Act (~370 Mrd$ sur 10 ans)", "impact_observe": "Investissement privé induit 3× l'investissement public", "score": 0.5 }
+    ],
+    "questions": [
+      "Capacité d'absorption réelle de l'économie ?",
+      "Financement : dette, impôts, ou partenariats privés ?"
+    ]
+  }
+]

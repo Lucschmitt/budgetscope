@@ -1,0 +1,18 @@
+{
+  "ir":         { "bas": 0.5,  "haut": 0.8 },
+  "is":         { "bas": 0.3,  "haut": 0.6 },
+  "tva":        { "bas": 0.3,  "haut": 0.5 },
+  "cot":        { "bas": 0.6,  "haut": 0.9 },
+  "ticpe":      { "bas": 0.2,  "haut": 0.4 },
+  "autres_r":   { "bas": 0.2,  "haut": 0.4 },
+  "autres":     { "bas": 0.2,  "haut": 0.4 },
+  "sante":      { "bas": 0.8,  "haut": 1.2 },
+  "retraites":  { "bas": 0.5,  "haut": 0.8 },
+  "education":  { "bas": 0.7,  "haut": 1.0 },
+  "emploi":     { "bas": 0.6,  "haut": 0.9 },
+  "defense":    { "bas": 0.5,  "haut": 0.8 },
+  "dette":      { "bas": 0.0,  "haut": 0.0 },
+  "collectivites": { "bas": 0.7, "haut": 1.0 },
+  "transition": { "bas": 0.8,  "haut": 1.5 },
+  "autres_d":   { "bas": 0.5,  "haut": 0.8 }
+}

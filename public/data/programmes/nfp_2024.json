@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "id": "nfp_2024",
+    "label": "Nouveau Front Populaire",
+    "label_court": "NFP",
+    "couleur": "#E53935",
+    "couleur_secondaire": "#FFCDD2",
+    "annee_programme": 2024,
+    "source_url": "https://lafranceinsoumise.fr/wp-content/uploads/2024/06/Programme-nouveaufrontpopulaire.pdf",
+    "source_label": "Programme NFP — Législatives juin 2024",
+    "statut": "programme_electoral",
+    "note_editoriale": "Programme de coalition (LFI, PS, PCF, EELV). Chiffrages partiels — les postes non chiffrés dans le programme sont marqués 'incertain'. Analyse pipeline IA à compléter.",
+    "macro_hypotheses": {
+      "note": "Le programme suppose un effet de relance keynésien fort sur la demande intérieure, compensant partiellement le coût des mesures via la croissance et les recettes fiscales supplémentaires.",
+      "source": "Analyse préliminaire — à affiner par le pipeline IA"
+    }
+  },
+  "mesures_catalogue_ids": [
+    "abrogation-reforme-retraites",
+    "smic-1600",
+    "taxe-zucman",
+    "plafonnement-niches-ir",
+    "suppression-cir-grandes-entreprises",
+    "blocage-prix-energie",
+    "investissement-ecologique"
+  ],
+  "mesures_specifiques": []
+}

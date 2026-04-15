@@ -5,9 +5,7 @@ import SankeyChart from './Sankey';
 interface Poste {
   id: string; label: string; valeur: number; min: number; max: number;
   fixe?: boolean; source: string; infobulle: string;
-  // Anciens champs (compatibilité)
   taux_compensation_secu?: number; taux_allegement?: number;
-  // Nouveaux champs TVA split (budget_2025.json v2)
   taux_tva_etat?: number;
   taux_tva_secu?: number;
   taux_tva_collectivites?: number;
@@ -21,41 +19,62 @@ interface Mesure {
   analogies_historiques: { pays: string; annee: number; mesure: string; impact_observe: string; score: number }[];
   questions: string[];
 }
+interface ProgrammeMeta {
+  id: string;
+  label: string;
+  label_court: string;
+  couleur: string;
+  couleur_secondaire?: string;
+  annee_programme: number;
+  source_url: string;
+  source_label: string;
+  note_editoriale?: string;
+  macro_hypotheses?: { note: string; source: string };
+}
+interface Programme {
+  meta: ProgrammeMeta;
+  mesures_catalogue_ids: string[];
+  mesures_specifiques: Mesure[];
+}
+interface ProgrammeEntry {
+  id: string;
+  label: string;
+  label_court: string;
+  couleur: string;
+  file: string;
+}
 interface BudgetMeta {
   annee: number; pib: number;
   dette_initiale_pct: number; dette_montant_mds?: number;
-  // Nouveaux champs sélecteur
-  id: string;
-  label: string;
-  label_long?: string;
+  id: string; label: string; label_long?: string;
   type: 'previsionnel' | 'execute';
-  date_vote?: string;
-  contexte?: string;
-  contexte_court?: string;
-  alerte?: string;
-  alerte_type?: 'warning' | 'info' | 'success';
+  date_vote?: string; contexte?: string; contexte_court?: string;
+  alerte?: string; alerte_type?: 'warning' | 'info' | 'success';
 }
 interface BudgetData {
   meta: BudgetMeta;
   recettes_plf: Poste[]; recettes_plfss: Poste[];
   consolidation: {
-    // Anciens champs (compatibilité)
     compensation_tva_secu?: number;
     emprunt_etat: number;
     infobulle_compensation: string;
     infobulle_emprunt: string;
-    // Nouveaux champs (budget_2025.json v2)
     tva_vers_etat?: number;
     tva_vers_secu?: number;
     tva_vers_collectivites?: number;
     tva_vers_audiovisuel?: number;
   };
   depenses_plf: Poste[]; depenses_plfss: Poste[];
-  mesures: Mesure[];
-  multiplicateurs: Record<string, { bas: number; haut: number }>;
+  // Champs legacy — présents dans budget_2025.json, ignorés dans la nouvelle logique
+  mesures?: Mesure[];
+  multiplicateurs?: Record<string, { bas: number; haut: number }>;
 }
 interface Props {
   data: BudgetData;
+  catalogue: Mesure[];
+  multiplicateurs: Record<string, { bas: number; haut: number }>;
+  programmeList?: ProgrammeEntry[];
+  programmes?: Record<string, Programme>;
   budgetList?: { id: string; label: string; file: string }[];
   onBudgetChange?: (id: string) => void;
 }
@@ -69,6 +88,10 @@ const STATUT: Record<string, { label: string; cls: string }> = {
 };
 const fmt = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(0)} mds`;
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+// ── Feature flag — mode à la carte (future fonctionnalité) ─────────────────
+// Passer à true pour ré-activer les checkboxes individuelles
+const MODE_A_LA_CARTE = false;
 
 // ── Tooltip ────────────────────────────────────────────────────────────────
 function Tooltip({ content, source, onClose }: { content: string; source?: string; onClose: () => void }) {
@@ -115,7 +138,11 @@ function PosteRow({ poste, valeur, delta, trackColor }: {
 }
 
 // ── FicheMesure ────────────────────────────────────────────────────────────
-function FicheMesure({ mesure, onClose }: { mesure: Mesure; onClose: () => void }) {
+function FicheMesure({ mesure, programmeMeta, onClose }: {
+  mesure: Mesure;
+  programmeMeta?: ProgrammeMeta;
+  onClose: () => void;
+}) {
   const st = STATUT[mesure.statut] ?? { label: mesure.statut, cls: 'badge-hypothese' };
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -129,7 +156,14 @@ function FicheMesure({ mesure, onClose }: { mesure: Mesure; onClose: () => void 
                 : mesure.source_label}
             </p>
           </div>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem' }}>
+            {programmeMeta && (
+              <span className="badge-programme" style={{ background: programmeMeta.couleur + '22', color: programmeMeta.couleur, border: `1px solid ${programmeMeta.couleur}55` }}>
+                {programmeMeta.label_court}
+              </span>
+            )}
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
         </div>
         <div className="modal-infobulle">{mesure.infobulle}</div>
         <div className="modal-impact">
@@ -172,16 +206,33 @@ function FicheMesure({ mesure, onClose }: { mesure: Mesure; onClose: () => void 
 }
 
 // ── MesureRow ──────────────────────────────────────────────────────────────
-function MesureRow({ mesure, checked, onToggle, onOpenFiche }: {
+// MODE_A_LA_CARTE=false → lecture seule avec badge programme coloré
+// MODE_A_LA_CARTE=true  → checkbox individuelle (future fonctionnalité)
+function MesureRow({ mesure, checked, onToggle, onOpenFiche, programmeMeta }: {
   mesure: Mesure; checked: boolean; onToggle: () => void; onOpenFiche: () => void;
+  programmeMeta?: ProgrammeMeta;
 }) {
   const st = STATUT[mesure.statut] ?? { label: mesure.statut, cls: 'badge-hypothese' };
   return (
     <div className={`mesure-row${checked ? ' checked' : ''}`}>
-      <label className="mesure-check-wrap">
-        <input type="checkbox" checked={checked} onChange={onToggle} className="mesure-check" />
-        <span className="mesure-label">{mesure.label}</span>
-      </label>
+      {MODE_A_LA_CARTE ? (
+        <label className="mesure-check-wrap">
+          <input type="checkbox" checked={checked} onChange={onToggle} className="mesure-check" />
+          <span className="mesure-label">{mesure.label}</span>
+        </label>
+      ) : (
+        <div className="mesure-label-wrap">
+          {programmeMeta && (
+            <span
+              className="mesure-badge-programme"
+              style={{ background: programmeMeta.couleur + '22', color: programmeMeta.couleur, borderColor: programmeMeta.couleur + '55' }}
+            >
+              {programmeMeta.label_court}
+            </span>
+          )}
+          <span className="mesure-label">{mesure.label}</span>
+        </div>
+      )}
       <div className="mesure-right">
         <span className="mesure-impact">{fmt(mesure.impact_min)} à {fmt(mesure.impact_max)}</span>
         <span className={`badge ${st.cls}`}>{st.label}</span>
@@ -191,23 +242,80 @@ function MesureRow({ mesure, checked, onToggle, onOpenFiche }: {
   );
 }
 
+// ── ProgrammeSelector ──────────────────────────────────────────────────────
+function ProgrammeSelector({ programmeList, activeId, onChange }: {
+  programmeList: ProgrammeEntry[];
+  activeId: string | null;
+  onChange: (id: string | null) => void;
+}) {
+  return (
+    <div className="programme-selector">
+      <span className="programme-selector-label">Programme politique</span>
+      <div className="programme-btns">
+        <button
+          className={`programme-btn${activeId === null ? ' active active-none' : ''}`}
+          onClick={() => onChange(null)}
+        >
+          Aucun
+        </button>
+        {programmeList.map(p => (
+          <button
+            key={p.id}
+            className={`programme-btn${activeId === p.id ? ' active' : ''}`}
+            style={activeId === p.id ? { background: p.couleur, borderColor: p.couleur, color: '#fff' } : { borderColor: p.couleur + '66', color: p.couleur }}
+            onClick={() => onChange(activeId === p.id ? null : p.id)}
+          >
+            {p.label_court}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Simulateur ─────────────────────────────────────────────────────────────
-export default function Simulateur({ data, budgetList = [], onBudgetChange }: Props) {
-  const [cochees, setCochees]         = useState<Set<string>>(new Set());
-  const [ficheOuverte, setFiche]      = useState<Mesure | null>(null);
-  const [panelInfo, setPanelInfo]     = useState<{title: string; content: string; source?: string} | null>(null);
+export default function Simulateur({ data, catalogue, multiplicateurs, programmeList = [], programmes = {}, budgetList = [], onBudgetChange }: Props) {
+  const [programmeActif, setProgrammeActif] = useState<string | null>(null);
+  const [ficheOuverte, setFiche]            = useState<Mesure | null>(null);
+  const [ficheProgramme, setFicheProgramme] = useState<ProgrammeMeta | undefined>(undefined);
+  const [panelInfo, setPanelInfo]           = useState<{title: string; content: string; source?: string} | null>(null);
+
+  // ── Mesures actives : issues du programme sélectionné ─────────────────
+  // En mode à la carte (futur), ce Set sera rempli manuellement par l'user
+  const cochees = useMemo<Set<string>>(() => {
+    if (!programmeActif) return new Set();
+    const prog = programmes[programmeActif];
+    if (!prog) return new Set();
+    const ids = [
+      ...prog.mesures_catalogue_ids,
+      ...prog.mesures_specifiques.map(m => m.id),
+    ];
+    return new Set(ids);
+  }, [programmeActif, programmes]);
+
+  // ── Catalogue consolidé : mesures générales + spécifiques du programme ─
+  const catalogueActif = useMemo<Mesure[]>(() => {
+    if (!programmeActif) return catalogue;
+    const prog = programmes[programmeActif];
+    if (!prog) return catalogue;
+    const specifiquesIds = new Set(prog.mesures_specifiques.map(m => m.id));
+    const base = catalogue.filter(m => !specifiquesIds.has(m.id));
+    return [...base, ...prog.mesures_specifiques];
+  }, [programmeActif, programmes, catalogue]);
+
+  const getMesure = (id: string) => catalogueActif.find(m => m.id === id);
 
   const deltas = useMemo(() => {
     const acc: Record<string, { min: number; max: number }> = {};
     for (const id of cochees) {
-      const m = data.mesures.find(m => m.id === id);
+      const m = getMesure(id);
       if (!m) continue;
       if (!acc[m.poste]) acc[m.poste] = { min: 0, max: 0 };
       acc[m.poste].min += m.impact_min;
       acc[m.poste].max += m.impact_max;
     }
     return acc;
-  }, [cochees]);
+  }, [cochees, catalogueActif]);
 
   const veff = useMemo(() => {
     const map: Record<string, number> = {};
@@ -223,130 +331,103 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
   const totalPlf   = useMemo(() => data.recettes_plf.reduce((s, p) => s + ve(p), 0),   [veff]);
   const totalPlfss = useMemo(() => data.recettes_plfss.reduce((s, p) => s + ve(p), 0), [veff]);
 
-  // ── Taux TVA split (depuis budget_2025.json) ────────────────────────────
   const tvaPoste = data.recettes_plf.find(p => p.id === 'tva');
-  const taux_tva_etat          = tvaPoste?.taux_tva_etat          ?? 0.4815; // 104/216 (inclut audiovisuel 6 Mrd)
+  const taux_tva_etat          = tvaPoste?.taux_tva_etat          ?? 0.4815;
   const taux_tva_secu          = tvaPoste?.taux_tva_secu          ?? 0.171;
   const taux_tva_collectivites = tvaPoste?.taux_tva_collectivites ?? 0.347;
-  const taux_tva_audiovisuel   = tvaPoste?.taux_tva_audiovisuel   ?? 0.0;   // intégré dans taux_tva_etat
+  const taux_tva_audiovisuel   = tvaPoste?.taux_tva_audiovisuel   ?? 0.0;
 
-  // ── compensationSecu = TVA part Sécu (pour info Sankey uniquement) ────────
-  // Ne sert PLUS à calculer plfNet (suppression double-déduction)
   const compensationSecu = useMemo(() => {
     const tva = veff['tva'] ?? 216;
     return Math.round(tva * taux_tva_secu);
   }, [veff, taux_tva_secu]);
 
-  // ── plfNet : recettes État = hors TVA hors OAT + part TVA→État ───────────
-  // La TVA vers Sécu/Collectivités/Audiovisuel sort directement du nœud TVA
-  // dans Sankey.tsx — elle ne transite pas par le Budget État
   const plfNet = useMemo(() => {
-    const tvaVal        = veff['tva'] ?? 216;
-    const tvaVersEtat   = Math.round(tvaVal * taux_tva_etat);
+    const tvaVal      = veff['tva'] ?? 216;
+    const tvaVersEtat = Math.round(tvaVal * taux_tva_etat);
     const recHorsTvaOat = data.recettes_plf
       .filter(p => p.id !== 'tva' && p.id !== 'oat')
       .reduce((s, p) => s + ve(p), 0);
     return recHorsTvaOat + tvaVersEtat;
   }, [veff, taux_tva_etat]);
 
-  const plfssNet = useMemo(() => {
-    return totalPlfss + compensationSecu;
-  }, [totalPlfss, compensationSecu]);
+  const plfssNet = useMemo(() => totalPlfss + compensationSecu, [totalPlfss, compensationSecu]);
   const emprunt  = data.consolidation.emprunt_etat;
 
   const totalDepPlf   = useMemo(() => data.depenses_plf.reduce((s, p) => s + ve(p), 0),   [veff]);
   const totalDepPlfss = useMemo(() => data.depenses_plfss.reduce((s, p) => s + ve(p), 0), [veff]);
-  const totalDep      = totalDepPlf + totalDepPlfss;
-
-  const solde       = (plfNet + plfssNet) - totalDep;
-  const soldePct    = (solde / data.meta.pib) * 100;
-  const dette       = data.meta.dette_initiale_pct - soldePct;
 
   const impactCroissance = useMemo(() => {
     let bas = 0, haut = 0;
     for (const id of cochees) {
-      const m = data.mesures.find(m => m.id === id);
+      const m = getMesure(id);
       if (!m) continue;
-      const mult = data.multiplicateurs[m.poste];
+      const mult = multiplicateurs[m.poste];
       if (!mult) continue;
       const d = (m.impact_min + m.impact_max) / 2;
       bas  -= d * mult.bas  / data.meta.pib * 100;
       haut -= d * mult.haut / data.meta.pib * 100;
     }
     return { bas: Math.min(bas, haut), haut: Math.max(bas, haut) };
-  }, [cochees]);
+  }, [cochees, catalogueActif, multiplicateurs]);
 
-  // ── Calculs indicateurs enrichis ─────────────────────────────────────────
   const indics = (data.meta as any).indicateurs ?? {};
 
-  // Déficit BGÉ = recettes hors OAT − dépenses PLF (périmètre DGFiP officiel)
   const deficitBGE = useMemo(() => {
     const recHorsTvaOat = data.recettes_plf
       .filter(p => p.id !== 'tva' && p.id !== 'oat')
       .reduce((s, p) => s + ve(p), 0);
     const tvaVal      = veff['tva'] ?? 216;
     const tvaVersEtat = Math.round(tvaVal * taux_tva_etat);
-    const recBGE      = recHorsTvaOat + tvaVersEtat; // ~386 Mrd recettes fiscales nettes
-    return recBGE - totalDepPlf;
+    return recHorsTvaOat + tvaVersEtat - totalDepPlf;
   }, [veff, totalDepPlf, taux_tva_etat]);
 
-  // Déficit Sécu = recettes Sécu − dépenses PLFSS
-  const deficitSecu = useMemo(() => {
-    return plfssNet - totalDepPlfss;
-  }, [plfssNet, totalDepPlfss]);
+  const deficitSecu = useMemo(() => plfssNet - totalDepPlfss, [plfssNet, totalDepPlfss]);
 
-  // Dette annuelle ajoutée :
-  // Base = valeurs de référence officielle du JSON (INSEE/DGFiP)
-  // Ajustement = delta introduit par les mesures cochées (calculé depuis le Sankey)
   const detteAjoutee = useMemo(() => {
-    // Référence officielle du JSON (ex: −128,1 BGÉ + −6,7 Sécu = −134,8 Mrd pour exec 2025)
-    const refBGE  = (indics.deficit_bge  as any)?.valeur_reference_mds as number  ?? -125;
-    const refSecu = (indics.deficit_secu as any)?.valeur_reference_mds as number  ?? -23;
+    const refBGE   = (indics.deficit_bge  as any)?.valeur_reference_mds as number ?? -125;
+    const refSecu  = (indics.deficit_secu as any)?.valeur_reference_mds as number ?? -23;
     const refTotal = refBGE + refSecu;
-
-    // Delta des mesures cochées : impact sur recettes PLF + PLFSS
-    // Un delta positif sur les recettes réduit le déficit, négatif l'aggrave
-    let deltaRecettesPLF  = 0;
-    let deltaDepensesPLF  = 0;
-    let deltaRecettesPLFSS = 0;
-    let deltaDepensesPLFSS = 0;
+    let deltaRecPLF = 0, deltaDepPLF = 0, deltaRecPLFSS = 0, deltaDepPLFSS = 0;
     for (const id of cochees) {
-      const m = data.mesures.find(m => m.id === id);
+      const m = getMesure(id);
       if (!m) continue;
       const mid = (m.impact_min + m.impact_max) / 2;
-      if (m.type === 'recette' && m.budget === 'plf')    deltaRecettesPLF   += mid;
-      if (m.type === 'depense' && m.budget === 'plf')    deltaDepensesPLF   += mid;
-      if (m.type === 'recette' && m.budget === 'plfss')  deltaRecettesPLFSS += mid;
-      if (m.type === 'depense' && m.budget === 'plfss')  deltaDepensesPLFSS += mid;
+      if (m.type === 'recette' && m.budget === 'plf')   deltaRecPLF   += mid;
+      if (m.type === 'depense' && m.budget === 'plf')   deltaDepPLF   += mid;
+      if (m.type === 'recette' && m.budget === 'plfss') deltaRecPLFSS += mid;
+      if (m.type === 'depense' && m.budget === 'plfss') deltaDepPLFSS += mid;
     }
-    const deltaBGE  = deltaRecettesPLF  - deltaDepensesPLF;   // + = améliore déficit
-    const deltaSecu = deltaRecettesPLFSS - deltaDepensesPLFSS;
-    return refTotal + deltaBGE + deltaSecu; // négatif = déficit = dette ajoutée
-  }, [cochees, indics, data.mesures]);
+    return refTotal + (deltaRecPLF - deltaDepPLF) + (deltaRecPLFSS - deltaDepPLFSS);
+  }, [cochees, catalogueActif, indics]);
   const detteAjouteePct = (detteAjoutee / data.meta.pib) * 100;
 
-  // Dette totale = stock initial + dette ajoutée cette année
-  const detteTotaleMds  = ((data.meta as any).dette_montant_mds as number)
+  const detteTotaleMds      = ((data.meta as any).dette_montant_mds as number)
     ?? Math.round(data.meta.dette_initiale_pct / 100 * data.meta.pib);
   const detteTotaleAvecAjout = detteTotaleMds + Math.abs(detteAjoutee);
-  const detteTotalePct  = detteTotaleAvecAjout / data.meta.pib * 100;
-  const detteEnAnnesPIB = detteTotaleMds / data.meta.pib;
-
-  const toggle = (id: string) => setCochees(prev => {
-    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
-  });
+  const detteTotalePct       = detteTotaleAvecAjout / data.meta.pib * 100;
+  const detteEnAnnesPIB      = detteTotaleMds / data.meta.pib;
 
   const sankeyRecettesPLF   = data.recettes_plf.map(p => ({ ...p, valeurEffective: ve(p) }));
   const sankeyRecettesPLFSS = data.recettes_plfss.map(p => ({ ...p, valeurEffective: ve(p) }));
   const sankeyDepensesPLF   = data.depenses_plf.map(p => ({ ...p, valeurEffective: ve(p) }));
   const sankeyDepensesPLFSS = data.depenses_plfss.map(p => ({ ...p, valeurEffective: ve(p) }));
-  const mesuresActives = data.mesures.filter(m => cochees.has(m.id)).map(m => ({
-    id: m.id, label: m.label, poste: m.poste,
-    impact_min: m.impact_min, impact_max: m.impact_max,
-    statut: m.statut,
-    source_label: m.source_label,
-    effets_indirects: m.effets_indirects,
-  }));
+  const mesuresActives = [...cochees].flatMap(id => {
+    const m = getMesure(id);
+    if (!m) return [];
+    return [{ id: m.id, label: m.label, poste: m.poste, impact_min: m.impact_min, impact_max: m.impact_max, statut: m.statut, source_label: m.source_label, effets_indirects: m.effets_indirects }];
+  });
+
+  const progMeta = programmeActif ? programmes[programmeActif]?.meta : undefined;
+
+  // Mesures à afficher (uniquement celles du programme actif, ou aucune)
+  const mesuresAffichees = useMemo<Mesure[]>(() => {
+    if (!programmeActif) return [];
+    return [...cochees].flatMap(id => {
+      const m = getMesure(id);
+      return m ? [m] : [];
+    });
+  }, [cochees, catalogueActif, programmeActif]);
 
   return (
     <>
@@ -378,6 +459,28 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         </div>
       )}
 
+      {/* ── Sélecteur de programme ── */}
+      {programmeList.length > 0 && (
+        <ProgrammeSelector
+          programmeList={programmeList}
+          activeId={programmeActif}
+          onChange={id => { setProgrammeActif(id); }}
+        />
+      )}
+
+      {/* ── Bandeau programme actif ── */}
+      {progMeta && (
+        <div className="programme-banner" style={{ borderColor: progMeta.couleur + '55', background: progMeta.couleur + '11' }}>
+          <div className="programme-banner-left">
+            <span className="programme-banner-label" style={{ color: progMeta.couleur }}>{progMeta.label}</span>
+            <span className="programme-banner-sub">{progMeta.source_label}</span>
+          </div>
+          <a href={progMeta.source_url} target="_blank" rel="noopener" className="programme-banner-link" style={{ color: progMeta.couleur }}>
+            Programme source ↗
+          </a>
+        </div>
+      )}
+
       <div className="sankey-full">
         <SankeyChart
           recettes_plf={sankeyRecettesPLF}
@@ -397,104 +500,59 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         />
       </div>
 
-      {/* ── Indicateurs ligne 1 ── */}
+      {/* ── Indicateurs ── */}
       <div className="indicators">
-
-        {/* Déficits BGÉ + Sécu — double encart */}
         <div className="indicator indicator--double"
-             onClick={() => indics.deficit_bge && setPanelInfo({
-               title: indics.deficit_bge.label ?? 'Déficit BGÉ',
-               content: (indics.deficit_bge.infobulle ?? '') + '\n\n' + (indics.deficit_bge.note_methodologique ?? ''),
-               source: indics.deficit_bge.source
-             })}
+             onClick={() => indics.deficit_bge && setPanelInfo({ title: indics.deficit_bge.label ?? 'Déficit BGÉ', content: (indics.deficit_bge.infobulle ?? '') + '\n\n' + (indics.deficit_bge.note_methodologique ?? ''), source: indics.deficit_bge.source })}
              style={{ cursor: indics.deficit_bge ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Déficits annuels
-            {indics.deficit_bge && <span className="ind-info-icon">ⓘ</span>}
-          </div>
+          <div className="ind-label">Déficits annuels{indics.deficit_bge && <span className="ind-info-icon">ⓘ</span>}</div>
           <div className="ind-double-row">
             <span className="ind-double-label">BGÉ</span>
-            <span className={`ind-double-val ${deficitBGE >= 0 ? 'val-pos' : 'val-neg'}`}>
-              {fmt(deficitBGE)} €
-            </span>
+            <span className={`ind-double-val ${deficitBGE >= 0 ? 'val-pos' : 'val-neg'}`}>{fmt(deficitBGE)} €</span>
           </div>
           <div className="ind-double-row"
-               onClick={e => { e.stopPropagation(); indics.deficit_secu && setPanelInfo({
-                 title: indics.deficit_secu.label ?? 'Déficit Sécu',
-                 content: indics.deficit_secu.infobulle ?? '',
-                 source: indics.deficit_secu.source
-               }); }}>
+               onClick={e => { e.stopPropagation(); indics.deficit_secu && setPanelInfo({ title: indics.deficit_secu.label ?? 'Déficit Sécu', content: indics.deficit_secu.infobulle ?? '', source: indics.deficit_secu.source }); }}>
             <span className="ind-double-label">Sécu</span>
-            <span className={`ind-double-val ${deficitSecu >= 0 ? 'val-pos' : 'val-neg'}`}>
-              {fmt(deficitSecu)} €
-            </span>
+            <span className={`ind-double-val ${deficitSecu >= 0 ? 'val-pos' : 'val-neg'}`}>{fmt(deficitSecu)} €</span>
           </div>
         </div>
 
-        {/* Dette ajoutée cette année */}
         <div className="indicator"
-             onClick={() => indics.dette_annuelle && setPanelInfo({
-               title: indics.dette_annuelle.label ?? 'Dette ajoutée',
-               content: indics.dette_annuelle.infobulle ?? '',
-               source: indics.dette_annuelle.source
-             })}
+             onClick={() => indics.dette_annuelle && setPanelInfo({ title: indics.dette_annuelle.label ?? 'Dette ajoutée', content: indics.dette_annuelle.infobulle ?? '', source: indics.dette_annuelle.source })}
              style={{ cursor: indics.dette_annuelle ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Dette ajoutée {data.meta.annee ?? ''}
-            {indics.dette_annuelle && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className={`ind-value ${detteAjoutee < 0 ? 'val-neg' : 'val-pos'}`}>
-            {fmt(detteAjoutee)} €
-          </div>
+          <div className="ind-label">Dette ajoutée {data.meta.annee ?? ''}{indics.dette_annuelle && <span className="ind-info-icon">ⓘ</span>}</div>
+          <div className={`ind-value ${detteAjoutee < 0 ? 'val-neg' : 'val-pos'}`}>{fmt(detteAjoutee)} €</div>
           <div className="ind-sub">{Math.abs(detteAjouteePct).toFixed(1)} % du PIB</div>
         </div>
 
-        {/* Dette totale stock */}
         <div className="indicator"
-             onClick={() => indics.dette_totale && setPanelInfo({
-               title: indics.dette_totale.label ?? 'Dette totale',
-               content: indics.dette_totale.infobulle ?? '',
-               source: indics.dette_totale.source
-             })}
+             onClick={() => indics.dette_totale && setPanelInfo({ title: indics.dette_totale.label ?? 'Dette totale', content: indics.dette_totale.infobulle ?? '', source: indics.dette_totale.source })}
              style={{ cursor: indics.dette_totale ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Dette totale
-            {indics.dette_totale && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className={`ind-value ${detteTotalePct > 100 ? 'val-neg' : 'val-neutral'}`}>
-            {detteTotaleMds.toLocaleString('fr-FR')} Mrd€
-          </div>
+          <div className="ind-label">Dette totale{indics.dette_totale && <span className="ind-info-icon">ⓘ</span>}</div>
+          <div className={`ind-value ${detteTotalePct > 100 ? 'val-neg' : 'val-neutral'}`}>{detteTotaleMds.toLocaleString('fr-FR')} Mrd€</div>
           <div className="ind-sub">{detteEnAnnesPIB.toFixed(2)} ann. PIB · {detteTotalePct.toFixed(1)} %</div>
         </div>
 
-        {/* Impact croissance */}
         <div className="indicator"
-             onClick={() => indics.croissance && setPanelInfo({
-               title: indics.croissance.label ?? 'Impact croissance',
-               content: indics.croissance.infobulle ?? '',
-               source: indics.croissance.source
-             })}
+             onClick={() => indics.croissance && setPanelInfo({ title: indics.croissance.label ?? 'Impact croissance', content: indics.croissance.infobulle ?? '', source: indics.croissance.source })}
              style={{ cursor: indics.croissance ? 'pointer' : 'default' }}>
-          <div className="ind-label">
-            Impact croissance
-            {indics.croissance && <span className="ind-info-icon">ⓘ</span>}
-          </div>
-          <div className="ind-value val-neutral">
-            {impactCroissance.bas.toFixed(2)} à {impactCroissance.haut.toFixed(2)} %
-          </div>
+          <div className="ind-label">Impact croissance{indics.croissance && <span className="ind-info-icon">ⓘ</span>}</div>
+          <div className="ind-value val-neutral">{impactCroissance.bas.toFixed(2)} à {impactCroissance.haut.toFixed(2)} %</div>
           <div className="ind-sub">Multiplicateurs OFCE / IPP</div>
         </div>
 
-        {/* Mesures actives */}
         <div className="indicator">
           <div className="ind-label">Mesures actives</div>
           <div className="ind-value val-neutral">{cochees.size}</div>
-          <div className="ind-sub">{cochees.size === 0 ? `Budget ${data.meta.label ?? ''} de base` : 'Scénario modifié'}</div>
+          <div className="ind-sub">
+            {cochees.size === 0
+              ? `Budget ${data.meta.label ?? ''} de base`
+              : progMeta ? `Programme ${progMeta.label_court}` : 'Scénario modifié'}
+          </div>
         </div>
-
       </div>
 
-      {/* ── Panneau méthodologique latéral ── */}
+      {/* ── Panneau méthodologique ── */}
       {panelInfo && (
         <div className="panel-overlay" onClick={() => setPanelInfo(null)}>
           <div className="panel-drawer" onClick={e => e.stopPropagation()}>
@@ -507,30 +565,48 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
                 <p key={i} className="panel-para">{para}</p>
               ))}
             </div>
-            {panelInfo.source && (
-              <div className="panel-footer">Source : {panelInfo.source}</div>
+            {panelInfo.source && <div className="panel-footer">Source : {panelInfo.source}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Mesures du programme ── */}
+      {mesuresAffichees.length > 0 && (
+        <div className="mesures-zone">
+          <div className="mesures-col">
+            <h3 className="mesures-title">
+              <span className="mesures-dot" style={{ background: progMeta?.couleur ?? 'var(--accent-blue)' }} />
+              {progMeta?.label_court ?? 'Programme'} — Recettes
+            </h3>
+            {mesuresAffichees.filter(m => m.type === 'recette').map(m => (
+              <MesureRow key={m.id} mesure={m} checked programmeMeta={progMeta} onToggle={() => {}} onOpenFiche={() => { setFiche(m); setFicheProgramme(progMeta); }} />
+            ))}
+            {mesuresAffichees.filter(m => m.type === 'recette').length === 0 && (
+              <p className="mesures-empty">Aucune mesure recette dans ce programme.</p>
+            )}
+          </div>
+          <div className="mesures-col">
+            <h3 className="mesures-title">
+              <span className="mesures-dot" style={{ background: progMeta?.couleur ?? 'var(--accent-red)' }} />
+              {progMeta?.label_court ?? 'Programme'} — Dépenses
+            </h3>
+            {mesuresAffichees.filter(m => m.type === 'depense').map(m => (
+              <MesureRow key={m.id} mesure={m} checked programmeMeta={progMeta} onToggle={() => {}} onOpenFiche={() => { setFiche(m); setFicheProgramme(progMeta); }} />
+            ))}
+            {mesuresAffichees.filter(m => m.type === 'depense').length === 0 && (
+              <p className="mesures-empty">Aucune mesure dépense dans ce programme.</p>
             )}
           </div>
         </div>
       )}
 
-      {/* ── Mesures ── */}
-      <div className="mesures-zone">
-        <div className="mesures-col">
-          <h3 className="mesures-title"><span className="mesures-dot dot-blue"/>Propositions — Recettes</h3>
-          {data.mesures.filter(m => m.type === 'recette').map(m => (
-            <MesureRow key={m.id} mesure={m} checked={cochees.has(m.id)} onToggle={() => toggle(m.id)} onOpenFiche={() => setFiche(m)}/>
-          ))}
+      {mesuresAffichees.length === 0 && programmeList.length > 0 && (
+        <div className="mesures-placeholder">
+          <p>Sélectionnez un programme politique pour visualiser son impact sur le budget.</p>
         </div>
-        <div className="mesures-col">
-          <h3 className="mesures-title"><span className="mesures-dot dot-red"/>Propositions — Dépenses</h3>
-          {data.mesures.filter(m => m.type === 'depense').map(m => (
-            <MesureRow key={m.id} mesure={m} checked={cochees.has(m.id)} onToggle={() => toggle(m.id)} onOpenFiche={() => setFiche(m)}/>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {ficheOuverte && <FicheMesure mesure={ficheOuverte} onClose={() => setFiche(null)}/>}
+      {ficheOuverte && <FicheMesure mesure={ficheOuverte} programmeMeta={ficheProgramme} onClose={() => { setFiche(null); setFicheProgramme(undefined); }} />}
 
       <style>{`
         .sankey-full { width: 100%; margin: 1rem 0; }
@@ -574,36 +650,55 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         .tooltip-text { font-size: 0.73rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 0.25rem; }
         .tooltip-source { font-size: 0.65rem; color: var(--text-muted); font-style: italic; }
 
-        .consol-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 0.71rem; gap: 4px; }
-        .consol-label { color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
-        .consol-val { font-weight: 500; white-space: nowrap; }
-        .consol-total { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; background: var(--bg-hover); border-radius: var(--radius); font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); margin-top: 0.2rem; }
-        .consol-total-val { color: var(--accent-blue); }
-
-        .col-sankey { background: var(--bg-card); }
-        .sankey-wrap { min-height: 360px; }
-
-        .indicators { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.75rem; margin: 0.75rem 0; }
-        @media (max-width: 768px) { .indicators { grid-template-columns: repeat(2,1fr); } }
+        .indicators { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 0.65rem; margin: 0.75rem 0; }
+        @media (max-width: 900px) { .indicators { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 600px) { .indicators { grid-template-columns: repeat(2,1fr); } }
         .indicator { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.875rem; text-align: center; }
+        .indicator--double { grid-row: span 1; display: flex; flex-direction: column; gap: 0.2rem; }
         .ind-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
         .ind-value { font-size: 1.3rem; font-weight: 600; }
         .val-pos { color: var(--accent-green); } .val-neg { color: var(--accent-red); } .val-neutral { color: var(--text-primary); }
         .ind-sub { font-size: 0.63rem; color: var(--text-muted); margin-top: 0.2rem; }
+        .ind-double-row { display: flex; justify-content: space-between; align-items: center; padding: 0.15rem 0; border-top: 1px solid var(--border-subtle); }
+        .ind-double-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+        .ind-double-val { font-size: 0.85rem; font-weight: 700; }
+        .ind-info-icon { font-size: 0.6rem; color: var(--text-muted); margin-left: 3px; }
+        .indicator[style*="pointer"] { transition: border-color 0.15s; }
+        .indicator[style*="pointer"]:hover { border-color: var(--accent-blue); }
 
+        /* ── Sélecteur programme ── */
+        .programme-selector { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .programme-selector-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+        .programme-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .programme-btn { border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); cursor: pointer; font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.875rem; transition: all 0.15s; }
+        .programme-btn:hover { opacity: 0.85; }
+        .programme-btn.active-none { background: var(--bg-hover); border-color: var(--border); color: var(--text-secondary); }
+
+        /* ── Bandeau programme actif ── */
+        .programme-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.55rem 0.875rem; border-radius: 8px; border: 1px solid; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .programme-banner-left { display: flex; flex-direction: column; gap: 0.1rem; }
+        .programme-banner-label { font-size: 0.78rem; font-weight: 700; }
+        .programme-banner-sub { font-size: 0.65rem; color: var(--text-muted); }
+        .programme-banner-link { font-size: 0.68rem; font-weight: 500; text-decoration: none; white-space: nowrap; }
+        .programme-banner-link:hover { text-decoration: underline; }
+
+        /* ── Mesures ── */
         .mesures-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
         @media (max-width: 700px) { .mesures-zone { grid-template-columns: 1fr; } }
         .mesures-col { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.875rem; }
         .mesures-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.6rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border-subtle); }
         .mesures-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .mesures-empty { font-size: 0.72rem; color: var(--text-muted); font-style: italic; padding: 0.25rem 0; }
+        .mesures-placeholder { text-align: center; padding: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 0.5rem; }
+        .mesures-placeholder p { font-size: 0.8rem; color: var(--text-muted); }
 
         .mesure-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.35rem 0; gap: 0.5rem; border-bottom: 1px solid var(--border-subtle); }
         .mesure-row:last-child { border-bottom: none; }
-        .mesure-row.checked { background: rgba(56,139,253,0.06); border-radius: var(--radius); padding: 0.35rem 0.3rem; }
+        .mesure-row.checked { background: rgba(56,139,253,0.04); border-radius: var(--radius); padding: 0.35rem 0.3rem; }
+        .mesure-label-wrap { display: flex; align-items: flex-start; gap: 0.4rem; flex: 1; min-width: 0; }
         .mesure-check-wrap { display: flex; align-items: flex-start; gap: 0.4rem; cursor: pointer; flex: 1; min-width: 0; }
         .mesure-check { accent-color: var(--accent-blue); width: 13px; height: 13px; flex-shrink: 0; margin-top: 2px; cursor: pointer; }
         .mesure-label { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.35; }
-        .mesure-row.checked .mesure-label { color: var(--text-primary); }
         .mesure-right { display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
         .mesure-impact { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
 
@@ -611,6 +706,8 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         .badge-observe   { background: #1a3a2a; color: #3fb950; }
         .badge-hypothese { background: #2a2a1a; color: #d29922; }
         .badge-incertain { background: #2a1a1a; color: #f85149; }
+        .badge-programme { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 9999px; font-size: 0.62rem; font-weight: 700; white-space: nowrap; border: 1px solid; flex-shrink: 0; margin-top: 1px; }
+        .mesure-badge-programme { display: inline-flex; align-items: center; padding: 1px 5px; border-radius: 9999px; font-size: 0.6rem; font-weight: 700; white-space: nowrap; border: 1px solid; flex-shrink: 0; margin-top: 2px; }
         .btn-info { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.82rem; padding: 0 2px; transition: color 0.2s; line-height: 1; }
         .btn-info:hover { color: var(--accent-blue); }
 
@@ -637,19 +734,6 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         .modal-footer { display: flex; gap: 1rem; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.6rem; }
         .modal-footer strong { color: var(--text-secondary); }
 
-        /* ── Indicateurs enrichis ── */
-        .indicators { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 0.65rem; margin: 0.75rem 0; }
-        @media (max-width: 900px) { .indicators { grid-template-columns: repeat(3,1fr); } }
-        @media (max-width: 600px) { .indicators { grid-template-columns: repeat(2,1fr); } }
-        .indicator--double { grid-row: span 1; display: flex; flex-direction: column; gap: 0.2rem; }
-        .ind-double-row { display: flex; justify-content: space-between; align-items: center; padding: 0.15rem 0; border-top: 1px solid var(--border-subtle); }
-        .ind-double-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-        .ind-double-val { font-size: 0.85rem; font-weight: 700; }
-        .ind-info-icon { font-size: 0.6rem; color: var(--text-muted); margin-left: 3px; }
-        .indicator[style*="pointer"] { transition: border-color 0.15s; }
-        .indicator[style*="pointer"]:hover { border-color: var(--accent-blue); }
-
-        /* ── Panneau latéral ── */
         .panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 400; display: flex; justify-content: flex-end; }
         .panel-drawer { background: #0d1117; border-left: 1px solid var(--border); width: min(480px, 92vw); height: 100%; display: flex; flex-direction: column; overflow: hidden; animation: slideIn 0.2s ease; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
@@ -661,13 +745,11 @@ export default function Simulateur({ data, budgetList = [], onBudgetChange }: Pr
         .panel-para { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.65; margin: 0; white-space: pre-line; }
         .panel-footer { padding: 0.875rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.68rem; color: var(--text-muted); font-style: italic; flex-shrink: 0; }
 
-        /* ── Sélecteur de budget ── */
         .budget-selector { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
         .budget-btn { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.75rem; transition: all 0.15s; }
         .budget-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
         .budget-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
 
-        /* ── Bandeau contextuel ── */
         .budget-banner { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 0.6rem 0.875rem; border-radius: 8px; margin-bottom: 0.5rem; flex-wrap: wrap; }
         .budget-banner--warning { background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3); }
         .budget-banner--info    { background: rgba(56,139,253,0.08); border: 1px solid rgba(56,139,253,0.2); }

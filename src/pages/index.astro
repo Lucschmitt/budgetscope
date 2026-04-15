@@ -2,60 +2,29 @@
 import Base from '../layouts/Base.astro';
 import SimulateurWrapper from '../components/SimulateurWrapper';
 
-// Liste des budgets disponibles — ajouter un fichier JSON dans /public/data/
-// et l'enregistrer ici pour qu'il apparaisse dans le sélecteur
 const budgetList = [
-  { id: 'plf_2025',  label: 'PLF 2025',     file: '/budgetscope/data/budget_2025.json'      },
-  { id: 'exec_2025', label: 'Exécuté 2025', file: '/budgetscope/data/budget_2025_exec.json' },
-  { id: 'plf_2026',  label: 'PLF 2026',     file: '/budgetscope/data/budget_2026_plf.json'  },
+  { id: 'plf_2025',  label: 'PLF 2025',      file: '/budgetscope/data/budget_2025.json' },
+  { id: 'exec_2025', label: 'Exécuté 2025',   file: '/budgetscope/data/budget_2025_exec.json' },
+  { id: 'plf_2026',  label: 'PLF 2026',       file: '/budgetscope/data/budget_2026_plf.json' },
+];
+
+const programmeList = [
+  {
+    id:          'nfp_2024',
+    label:       'Nouveau Front Populaire',
+    label_court: 'NFP',
+    couleur:     '#E53935',
+    file:        '/budgetscope/data/programmes/nfp_2024.json',
+  },
 ];
 ---
 
-<Base title="Simulateur" description="Simulateur interactif des finances publiques françaises 2025">
-
-  <div class="hero">
-    <p class="hero-line">
-      <strong class="hero-title">Équilibrez le budget de la France</strong>
-      <span class="hero-sep">—</span>
-      Cochez les propositions pour voir leur impact sur le déficit, la dette et la croissance. Cliquez sur les nœuds et les flux pour voir le détail.
-      <a href="/budgetscope/sources" class="hero-sources-link">Sources & transparence →</a>
-    </p>
-  </div>
-
-  <SimulateurWrapper budgetList={budgetList} client:load />
-
+<Base title="BudgetScope — Simulateur" description="Simulateur interactif des finances publiques françaises">
+  <SimulateurWrapper
+    client:load
+    budgetList={budgetList}
+    programmeList={programmeList}
+    catalogueFile="/budgetscope/data/mesures/catalogue.json"
+    multiplicateursFile="/budgetscope/data/mesures/multiplicateurs.json"
+  />
 </Base>
-
-<style>
-  .hero {
-    padding: 0.6rem 1rem 0.4rem;
-  }
-  .hero-line {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-  .hero-title {
-    font-weight: 700;
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
-  .hero-sep {
-    color: var(--text-muted);
-  }
-  .hero-sources-link {
-    font-size: 0.72rem;
-    color: var(--accent-blue);
-    text-decoration: none;
-    opacity: 0.8;
-    transition: opacity 0.15s;
-    white-space: nowrap;
-  }
-  .hero-sources-link:hover { opacity: 1; text-decoration: underline; }
-</style>
