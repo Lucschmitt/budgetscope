@@ -8,22 +8,13 @@ const budgetList = [
   { id: 'plf_2026',  label: 'PLF 2026',       file: '/budgetscope/data/budget_2026_plf.json' },
 ];
 
-const programmeList = [
-  {
-    id:          'nfp_2024',
-    label:       'Nouveau Front Populaire',
-    label_court: 'NFP',
-    couleur:     '#E53935',
-    file:        '/budgetscope/data/programmes/nfp_2024.json',
-  },
-];
 ---
 
 <Base title="BudgetScope — Simulateur" description="Simulateur interactif des finances publiques françaises">
   <SimulateurWrapper
     client:load
     budgetList={budgetList}
-    programmeList={programmeList}
+    programmeIndexFile="/budgetscope/data/programmes/programmes_index.json"
     catalogueFile="/budgetscope/data/mesures/catalogue.json"
     multiplicateursFile="/budgetscope/data/mesures/multiplicateurs.json"
   />

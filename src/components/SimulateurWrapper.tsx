@@ -6,6 +6,7 @@ interface ProgrammeEntry { id: string; label: string; label_court: string; coule
 interface Props {
   budgetList:    BudgetEntry[];
   programmeList?: ProgrammeEntry[];
+  programmeIndexFile?: string;
   catalogueFile?: string;
   multiplicateursFile?: string;
 }
@@ -14,14 +15,17 @@ const BASE = import.meta.env.BASE_URL ?? '';
 
 export default function SimulateurWrapper({
   budgetList,
-  programmeList = [],
+  programmeList,
+  programmeIndexFile = `${BASE}/data/programmes/programmes_index.json`,
   catalogueFile       = `${BASE}/data/mesures/catalogue.json`,
   multiplicateursFile = `${BASE}/data/mesures/multiplicateurs.json`,
 }: Props) {
+  const manualProgrammeList = programmeList ?? [];
   const [activeId,        setActiveId]        = useState(budgetList[0]?.id ?? '');
   const [budgetData,      setBudgetData]       = useState<any>(null);
   const [catalogue,       setCatalogue]        = useState<any[]>([]);
   const [multiplicateurs, setMultiplicateurs]  = useState<Record<string, any>>({});
+  const [programmeEntries,setProgrammeEntries] = useState<ProgrammeEntry[]>(manualProgrammeList);
   const [programmes,      setProgrammes]       = useState<Record<string, any>>({});
   const [loading,         setLoading]          = useState(true);
   const [error,           setError]            = useState('');
@@ -49,11 +53,23 @@ export default function SimulateurWrapper({
       .catch(e => { setError(e.message); setLoading(false); });
   }, [activeId]);
 
+  // ── Charge automatiquement l'index des programmes si non fourni ───────
+  useEffect(() => {
+    if (programmeList && programmeList.length > 0) {
+      setProgrammeEntries(programmeList);
+      return;
+    }
+    fetch(programmeIndexFile)
+      .then(r => r.ok ? r.json() : [])
+      .then((index) => setProgrammeEntries(Array.isArray(index) ? index : []))
+      .catch(() => setProgrammeEntries([]));
+  }, [programmeIndexFile, programmeList]);
+
   // ── Charge les programmes en parallèle (non bloquant) ─────────────────
   useEffect(() => {
-    if (programmeList.length === 0) return;
+    if (programmeEntries.length === 0) return;
     Promise.all(
-      programmeList.map(p =>
+      programmeEntries.map(p =>
         fetch(p.file)
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
@@ -64,7 +80,7 @@ export default function SimulateurWrapper({
       for (const r of results) { if (r) map[r[0]] = r[1]; }
       setProgrammes(map);
     });
-  }, [programmeList]);
+  }, [programmeEntries]);
 
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -82,7 +98,7 @@ export default function SimulateurWrapper({
       data={budgetData}
       catalogue={catalogue}
       multiplicateurs={multiplicateurs}
-      programmeList={programmeList}
+      programmeList={programmeEntries}
       programmes={programmes}
       budgetList={budgetList}
       onBudgetChange={setActiveId}

@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "id": "ensemble_2024",
+    "label": "Ensemble",
+    "label_court": "Ensemble",
+    "couleur": "#1E88E5",
+    "couleur_secondaire": "#BBDEFB",
+    "annee_programme": 2024,
+    "source_url": "https://doc.ensemble-2024.fr/programme-legislatives-24.pdf",
+    "source_label": "Programme Ensemble — Législatives juin 2024",
+    "statut": "programme_electoral",
+    "note_editoriale": "Extraction des mesures économiques principales du programme Ensemble pour les législatives 2024. Chiffrages reconstruits quand absents du document, et marqués en hypothèse.",
+    "macro_hypotheses": {
+      "note": "Le programme repose sur un soutien de l'offre (emploi/investissement), des baisses ciblées de coûts pour ménages et des compensations via lutte anti-fraude et taxation des rachats d'actions.",
+      "source": "Analyse préliminaire BudgetScope — à affiner par le pipeline IA"
+    }
+  },
+  "mesures_catalogue_ids": [
+    "baisse-electricite-15",
+    "ppv-10000-exoneree",
+    "mutuelle-publique-1euro",
+    "taxe-rachats-actions",
+    "renovation-energetique-300k",
+    "exoneration-dmto-primoaccedants",
+    "lutte-fraude-renforcee",
+    "exoneration-successions-150k",
+    "revalorisation-retraites-agricoles-25ans"
+  ],
+  "mesures_specifiques": []
+}
