@@ -459,28 +459,6 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
         </div>
       )}
 
-      {/* ── Sélecteur de programme ── */}
-      {programmeList.length > 0 && (
-        <ProgrammeSelector
-          programmeList={programmeList}
-          activeId={programmeActif}
-          onChange={id => { setProgrammeActif(id); }}
-        />
-      )}
-
-      {/* ── Bandeau programme actif ── */}
-      {progMeta && (
-        <div className="programme-banner" style={{ borderColor: progMeta.couleur + '55', background: progMeta.couleur + '11' }}>
-          <div className="programme-banner-left">
-            <span className="programme-banner-label" style={{ color: progMeta.couleur }}>{progMeta.label}</span>
-            <span className="programme-banner-sub">{progMeta.source_label}</span>
-          </div>
-          <a href={progMeta.source_url} target="_blank" rel="noopener" className="programme-banner-link" style={{ color: progMeta.couleur }}>
-            Programme source ↗
-          </a>
-        </div>
-      )}
-
       <div className="sankey-full">
         <SankeyChart
           recettes_plf={sankeyRecettesPLF}
@@ -551,6 +529,28 @@ export default function Simulateur({ data, catalogue, multiplicateurs, programme
           </div>
         </div>
       </div>
+
+      {/* ── Sélecteur de programme ── */}
+      {programmeList.length > 0 && (
+        <ProgrammeSelector
+          programmeList={programmeList}
+          activeId={programmeActif}
+          onChange={id => { setProgrammeActif(id); }}
+        />
+      )}
+
+      {/* ── Bandeau programme actif ── */}
+      {progMeta && (
+        <div className="programme-banner" style={{ borderColor: progMeta.couleur + '55', background: progMeta.couleur + '11' }}>
+          <div className="programme-banner-left">
+            <span className="programme-banner-label" style={{ color: progMeta.couleur }}>{progMeta.label}</span>
+            <span className="programme-banner-sub">{progMeta.source_label}</span>
+          </div>
+          <a href={progMeta.source_url} target="_blank" rel="noopener" className="programme-banner-link" style={{ color: progMeta.couleur }}>
+            Programme source ↗
+          </a>
+        </div>
+      )}
 
       {/* ── Panneau méthodologique ── */}
       {panelInfo && (
