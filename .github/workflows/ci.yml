@@ -48,6 +48,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          check-latest: true   # Astro 7 exige une version récente de Node 22
           cache: npm
           cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
       - run: npm ci
@@ -75,6 +76,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          check-latest: true   # Astro 7 exige une version récente de Node 22
           cache: npm
           cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
       - id: google
@@ -144,6 +146,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          check-latest: true   # Astro 7 exige une version récente de Node 22
           cache: npm
           cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
       - name: Construire
