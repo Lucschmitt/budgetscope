@@ -1,0 +1,156 @@
+# CI/CD du site « BudgetScope » — modèle « site » de l'usine de l'atelier.
+# Bloquant : secrets (gitleaks), construction du site.
+# PR (même dépôt, hors Dependabot) ou lancement manuel → preview sur https://luc-budgetscope.web.app/budgetscope/
+#   (projet usine luc-atelier-dev, authentification Google sans clé, compte « deployeur »).
+# Push sur main → mise en ligne sur GitHub Pages (la PROD actuelle, adresse publique inchangée), seulement si tout est vert.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  FIREBASE_TOOLS: firebase-tools@15.34.2
+  PROJET: luc-atelier-dev
+  WIF: projects/433042244419/locations/global/workloadIdentityPools/github/providers/github
+  DEPLOYEUR: deployeur@luc-atelier-dev.iam.gserviceaccount.com
+  SITE_PREVIEW: luc-budgetscope
+  CHEMIN: budgetscope          # même chemin que sur GitHub Pages : la preview est construite exactement comme la prod
+  DOSSIER: .        # dossier du package.json du site
+
+jobs:
+  secrets:
+    name: Secrets (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scanner tout l'historique
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz | tar xz gitleaks
+          ./gitleaks git . --redact --verbose --exit-code 1
+
+  site:
+    name: Site (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
+      - run: npm ci
+        working-directory: ${{ env.DOSSIER }}
+      - run: npm run build
+        working-directory: ${{ env.DOSSIER }}
+      - name: Vulnérabilités critiques des dépendances
+        working-directory: ${{ env.DOSSIER }}
+        run: npm audit --omit=dev --audit-level=critical
+
+  preview:
+    name: Preview
+    needs: [secrets, site]
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
+       && github.event.pull_request.head.repo.full_name == github.repository)
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
+      - id: google
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF }}
+          service_account: ${{ env.DEPLOYEUR }}
+          token_format: access_token
+      - name: S'assurer que le site de preview existe dans le projet usine
+        env:
+          ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
+        run: |
+          base="https://firebasehosting.googleapis.com/v1beta1/projects/$PROJET/sites"
+          if ! curl -sSf -o /dev/null -H "Authorization: Bearer $ACCESS_TOKEN" "$base/$SITE_PREVIEW"; then
+            curl -sSf -X POST -H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json" -d '{}' \
+              "$base?siteId=$SITE_PREVIEW" >/dev/null || { echo "::error::Impossible de créer le site $SITE_PREVIEW"; exit 1; }
+          fi
+      - name: Construire (identique à la prod)
+        working-directory: ${{ env.DOSSIER }}
+        run: npm ci && npm run build
+      - name: Publier sur un canal de preview (7 jours)
+        id: canal
+        run: |
+          mkdir -p "_preview/$CHEMIN" && cp -r "$DOSSIER/dist/." "_preview/$CHEMIN/"
+          cat > firebase.json <<JSON
+          {"hosting": {"site": "$SITE_PREVIEW", "public": "_preview",
+            "redirects": [{"source": "/", "destination": "/$CHEMIN/", "type": 302}]}}
+          JSON
+          if [ "${{ github.event_name }}" = "pull_request" ]; then canal="pr-${{ github.event.number }}"
+          else canal="br-$(echo "$GITHUB_REF_NAME" | tr -c 'a-zA-Z0-9\n' '-' | cut -c1-30 | sed 's/-*$//')"; fi
+          npx -y "$FIREBASE_TOOLS" hosting:channel:deploy "$canal" --project "$PROJET" --expires 7d --json > canal.json
+          url=$(jq -r '.result[] | .url' canal.json | head -1)
+          [ -n "$url" ] && [ "$url" != null ] || { cat canal.json; exit 1; }
+          echo "url=$url/$CHEMIN/" >> "$GITHUB_OUTPUT"
+          echo "### 🔎 Preview : $url/$CHEMIN/" >> "$GITHUB_STEP_SUMMARY"
+      - name: Poster le lien dans la PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.canal.outputs.url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          NUMERO: ${{ github.event.number }}
+        run: |
+          corps=$(printf '<!-- preview-atelier -->\n### 🔎 Preview prête\n\n**%s**\n\nCommit %s, valable 7 jours. Construite comme la prod (GitHub Pages), mise en ligne au merge.' "$URL" "${HEAD_SHA:0:7}")
+          api="repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments"
+          id=$(gh api "$api" --jq '[.[] | select(.body | startswith("<!-- preview-atelier -->"))][0].id // empty')
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$corps" >/dev/null
+          else gh api "$api" -f body="$corps" >/dev/null; fi
+
+  pages:
+    name: Mise en ligne (GitHub Pages)
+    needs: [secrets, site]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.DOSSIER }}/package-lock.json
+      - name: Construire
+        working-directory: ${{ env.DOSSIER }}
+        run: npm ci && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.DOSSIER }}/dist
+      - id: deploiement
+        uses: actions/deploy-pages@v4

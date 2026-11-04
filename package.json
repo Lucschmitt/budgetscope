@@ -12,12 +12,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.3",
+    "@astrojs/react": "^7.1.2",
     "@tailwindcss/vite": "^4.2.2",
     "@types/d3": "^7.4.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "astro": "^6.1.5",
+    "astro": "^7.4.5",
     "d3": "^7.9.0",
     "d3-sankey": "^0.12.3",
     "react": "^19.2.5",

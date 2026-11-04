@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Atelier : previews et réglages locaux
+_preview/
+.firebase/
+firebase-debug.log
+.claude/settings.local.json

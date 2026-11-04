@@ -3,7 +3,9 @@
 ## Dépôt
 - GitHub : lucschmitt/budgetscope (public)
 - Publication : GitHub Pages
-- Local : D:/Travail/IA_test/budgetscope
+- Local : D:/Travail/dev/budgetscope
+- PROD : GitHub Pages, https://lucschmitt.github.io/budgetscope/ (mise en ligne par la CI au merge sur `main`)
+- Previews : https://luc-budgetscope.web.app/budgetscope/ (projet usine `luc-atelier-dev`), une par PR
 
 ## Concept
 Simulateur interactif des finances publiques françaises.
@@ -16,14 +18,14 @@ Simulateur interactif des finances publiques françaises.
 ## Stack technique
 
 ### Vitrine (GitHub Pages)
-- **Framework** : Astro 4.x (static output → GitHub Pages)
+- **Framework** : Astro 7 (static output → GitHub Pages)
 - **UI interactive** : React 18 (îles Astro — uniquement là où c'est nécessaire)
 - **Sankey** : D3-sankey (via d3 v7)
 - **Style** : Tailwind CSS 3 + CSS variables pour le thème sombre
 - **Thème** : sombre par défaut, responsive
 - **Données** : fichiers JSON dans /src/data/ (chargés à la build)
 - **Fiches mesures** : fichiers .json dans /src/data/mesures/ → pages statiques Astro
-- **Publication** : astro build → /dist → GitHub Pages (branche gh-pages)
+- **Publication** : CI (`.github/workflows/ci.yml`) : astro build → /dist → GitHub Pages, après secrets et build verts
 
 ### Pipeline agents IA (Docker)
 - **Orchestration** : Docker Compose
@@ -63,7 +65,7 @@ Simulateur interactif des finances publiques françaises.
 1. `docker compose run coordinator --input "url_ou_pdf"`
 2. Les agents tournent, produisent un fichier JSON dans `/src/data/mesures/`
 3. `npm run build` régénère le site statique avec la nouvelle fiche
-4. `npm run deploy` pousse sur gh-pages
+4. PR → preview → merge : la CI met en ligne sur GitHub Pages
 
 ## Structure du dépôt
 ```
@@ -163,7 +165,6 @@ budgetscope/
 # Développement vitrine
 npm run dev          # astro dev → localhost:4321
 npm run build        # astro build → /dist
-npm run deploy       # push /dist sur gh-pages
 
 # Pipeline agents (Docker)
 docker compose -f tools/agents/docker-compose.yml run coordinator --input "url_ou_pdf"
@@ -179,7 +180,7 @@ docker compose -f tools/agents/docker-compose.yml logs    # logs de tous les age
 
 ## Journal de recherche
 - `ia4d log -p budgetscope -t "..." -b "..." --tags "..."`
-- Fichier : D:/Travail/IA_test/ia4democracy/IA4DEMOCRACY.md
+- Fichier : D:/Travail/dev/ia4democracy/IA4DEMOCRACY.md
 
 ## Prochaines étapes
 - [ ] Init Astro + React + Tailwind + D3
@@ -190,3 +191,13 @@ docker compose -f tools/agents/docker-compose.yml logs    # logs de tous les age
 - [ ] Première fiche-mesure (taxe Zucman)
 - [ ] docker-compose.yml + Dockerfiles agents
 - [ ] Pipeline agents RAG historique
+
+## Façon de travailler (règles de l'atelier)
+
+- **Toujours sur une branche** (`feat/…`, `fix/…`), puis une PR vers `main`. La CI doit être verte ; Luc merge.
+- **Chaque PR reçoit une preview** construite exactement comme la prod (même chemin `/budgetscope/`). Le merge sur
+  `main` met le site en ligne sur GitHub Pages, seulement si secrets et build sont verts. Plus de `npm run deploy`.
+- **Ne jamais lire ni écrire un fichier `.env`** (le garde-fou `.claude/hooks/garde-fou.mjs` le bloque).
+- **Dépôt public** : rien de personnel ni de secret, même dans un commentaire ou un exemple.
+- **Liens internes** : préférer `import.meta.env.BASE_URL` au chemin `/budgetscope/` écrit en dur.
+- Messages de commit et de PR en français, courts, à l'impératif.
