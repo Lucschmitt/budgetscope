@@ -156,4 +156,4 @@ jobs:
         with:
           path: ${{ env.DOSSIER }}/dist
       - id: deploiement
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
